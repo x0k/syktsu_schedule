@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:syktsu_schedule/data/model/group.dart';
 import 'package:syktsu_schedule/bloc/groups/index.dart';
 
 class GroupsPage extends StatelessWidget {
@@ -22,8 +21,15 @@ class GroupsPage extends StatelessWidget {
         child: ListView.builder(
             padding: const EdgeInsets.all(16.0),
             itemCount: state.groups.length,
-            itemBuilder: (context, i) =>
-                ListTile(title: Text(state.groups[i].title))),
+            itemBuilder: (context, i) => ListTile(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/schedule',
+                    arguments: state.groups[i],
+                  );
+                },
+                title: Text(state.groups[i].title))),
       )
     ]);
   }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
 
@@ -8,23 +9,20 @@ abstract class GroupsRepository {
 }
 
 class SyktsuGroupsRepository implements GroupsRepository {
-  static final _searchURL = 'https://campus.syktsu.ru/schedule/group/';
-  static final _searchHeaders = {
-    'Content-Type': 'application/x-www-form-urlencoded'
-  };
+  static const _searchURL = 'https://campus.syktsu.ru/schedule/group/';
 
-  List<Group> _processResponse(http.Response response) {
-    return parse(response.body)
-        .querySelectorAll('button[name=\'group\']')
+  static const _groupsSelector = 'button[name=\'group\']';
+
+  static List<Group> _extractGroups(String data) {
+    return parse(data)
+        .querySelectorAll(_groupsSelector)
         .map((item) => Group(id: item.attributes['value'], title: item.text))
         .toList();
   }
 
   @override
   Future<List<Group>> fetchGroups(String groupName) {
-    final body = {'num_group': groupName};
-    return http
-        .post(_searchURL, headers: _searchHeaders, body: body)
-        .then(_processResponse);
+    return http.post(_searchURL, body: {'num_group': groupName}).then(
+        (response) => compute(_extractGroups, response.body));
   }
 }
