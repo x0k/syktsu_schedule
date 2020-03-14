@@ -1,4 +1,6 @@
-import 'package:syktsu_schedule/data/schedule_params.dart';
+import 'package:meta/meta.dart';
+
+import '../../core/entities/schedule_params.dart';
 
 abstract class ScheduleEvent {
   const ScheduleEvent();
@@ -6,5 +8,5 @@ abstract class ScheduleEvent {
 
 class GetSchedule extends ScheduleEvent {
   final ScheduleParams params;
-  GetSchedule(this.params);
+  GetSchedule({ @required this.params});
 }

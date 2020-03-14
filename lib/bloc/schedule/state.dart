@@ -1,6 +1,4 @@
-import 'package:syktsu_schedule/data/model/schedule.dart';
-import 'package:syktsu_schedule/data/model/week.dart';
-// import 'package:syktsu_schedule/data/model/event.dart';
+import '../../core/entities/schedule.dart';
 
 abstract class ScheduleState {
   const ScheduleState();
@@ -16,8 +14,7 @@ class ScheduleLoading extends ScheduleState {
 
 class ScheduleLoaded extends ScheduleState {
   final Schedule schedule;
-  final List<Week> weeks;
-  const ScheduleLoaded(this.schedule, this.weeks);
+  const ScheduleLoaded(this.schedule);
 }
 
 class ScheduleError extends ScheduleState {
