@@ -17,7 +17,11 @@ class SchedulesBloc extends Bloc<SchedulesEvent, SchedulesState> {
   @override
   Stream<SchedulesState> mapEventToState(SchedulesEvent event) async* {
     if (event is SelectSchedule) {
-      yield SchedulesSelected(event.params);
+      yield SchedulesSelected(
+          type: event.type,
+          selected: event.selected,
+          paramsList: event.paramsList,
+          searchPhrase: event.searchPhrase);
     } else {
       yield SchedulesLoading();
       if (event is GetSchedules) {

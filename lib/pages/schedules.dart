@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../core/constants.dart';
-import '../core/entities/schedule_params.dart';
 import '../bloc/schedules/index.dart';
 
 class SchedulesPage extends StatelessWidget {
-  void onSelected(BuildContext context, ScheduleParams params) {
+  void onSelected(BuildContext context, int selected) {
     final bloc = BlocProvider.of<SchedulesBloc>(context);
-    bloc.add(SelectSchedule(params));
+    final state = bloc.state;
+    if (state is SchedulesLoaded) {
+      bloc.add(SelectSchedule(
+          type: state.type,
+          paramsList: state.paramsList,
+          searchPhrase: state.searchPhrase,
+          selected: selected));
+    }
   }
 
   Widget buildInitial() {
@@ -30,7 +36,7 @@ class SchedulesPage extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             itemCount: list.length,
             itemBuilder: (context, i) => ListTile(
-                onTap: () => onSelected(context, list[i]),
+                onTap: () => onSelected(context, i),
                 title: Text(list[i].title))),
       )
     ]);
@@ -48,7 +54,7 @@ class SchedulesPage extends StatelessWidget {
               Navigator.pushNamed(
                 context,
                 '/schedule',
-                arguments: state.params,
+                arguments: state.paramsList.list[state.selected],
               );
             } else if (state is SchedulesError) {
               Scaffold.of(context).showSnackBar(SnackBar(

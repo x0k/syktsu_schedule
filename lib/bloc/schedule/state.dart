@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../../core/entities/schedule.dart';
 
 abstract class ScheduleState {
@@ -14,10 +16,22 @@ class ScheduleLoading extends ScheduleState {
 
 class ScheduleLoaded extends ScheduleState {
   final Schedule schedule;
-  const ScheduleLoaded(this.schedule);
+  const ScheduleLoaded({@required this.schedule});
+}
+
+class ScheduleEvents extends ScheduleState {
+  final Schedule schedule;
+  final List<dynamic> events;
+  final int week;
+  final bool loading;
+  const ScheduleEvents(
+      {@required this.schedule,
+      @required this.events,
+      @required this.week,
+      @required this.loading});
 }
 
 class ScheduleError extends ScheduleState {
   final String message;
-  const ScheduleError(this.message);
+  const ScheduleError({@required this.message});
 }

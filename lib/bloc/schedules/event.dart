@@ -1,5 +1,7 @@
+import 'package:meta/meta.dart';
+
 import '../../core/constants.dart';
-import '../../core/entities/schedule_params.dart';
+import '../../core/entities/schedule_params_list.dart';
 
 abstract class SchedulesEvent {
   const SchedulesEvent();
@@ -9,11 +11,18 @@ class GetSchedules extends SchedulesEvent {
   final String searchPhrase;
   final ScheduleType type;
 
-  GetSchedules({ this.type, this.searchPhrase });
+  const GetSchedules({ @required this.type, @required this.searchPhrase });
 }
 
 class SelectSchedule extends SchedulesEvent {
-  final ScheduleParams params;
+  final int selected;
+  final String searchPhrase;
+  final ScheduleType type;
+  final ScheduleParamsList paramsList;
 
-  SelectSchedule(this.params);
+  const SelectSchedule(
+      {@required this.selected,
+      @required ScheduleType this.type,
+      @required String this.searchPhrase,
+      @required ScheduleParamsList this.paramsList});
 }

@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../../core/constants.dart';
 import '../../core/entities/schedule_params.dart';
 import '../../core/entities/schedule_params_list.dart';
@@ -19,12 +21,20 @@ class SchedulesLoaded extends SchedulesState {
   final ScheduleType type;
   final ScheduleParamsList paramsList;
 
-  const SchedulesLoaded({this.type, this.searchPhrase, this.paramsList});
+  const SchedulesLoaded(
+      {@required this.type,
+      @required this.searchPhrase,
+      @required this.paramsList});
 }
 
-class SchedulesSelected extends SchedulesState {
-  final ScheduleParams params;
-  SchedulesSelected(this.params);
+class SchedulesSelected extends SchedulesLoaded {
+  final int selected;
+  const SchedulesSelected(
+      {@required this.selected,
+      @required ScheduleType type,
+      @required String searchPhrase,
+      @required ScheduleParamsList paramsList})
+      : super(type: type, searchPhrase: searchPhrase, paramsList: paramsList);
 }
 
 class SchedulesError extends SchedulesState {
