@@ -9,7 +9,7 @@ class SchedulesPage extends StatelessWidget {
     final bloc = BlocProvider.of<SchedulesBloc>(context);
     final state = bloc.state;
     if (state is SchedulesLoaded) {
-      bloc.add(SelectSchedule(
+      bloc.add(LoadSchedule(
           type: state.type,
           paramsList: state.paramsList,
           searchPhrase: state.searchPhrase,
@@ -28,16 +28,18 @@ class SchedulesPage extends StatelessWidget {
   }
 
   Widget buildLoaded(SchedulesLoaded state) {
-    final list = state.paramsList.list;
+    final list = state.paramsList;
     return Column(children: <Widget>[
       GroupInputField(state.searchPhrase),
       Expanded(
-        child: ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: list.length,
-            itemBuilder: (context, i) => ListTile(
-                onTap: () => onSelected(context, i),
-                title: Text(list[i].title))),
+        child: list.length > 0
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: list.length,
+                itemBuilder: (context, i) => ListTile(
+                    onTap: () => onSelected(context, i),
+                    title: Text(list[i].title)))
+            : Text('Расписания не найдены'),
       )
     ]);
   }
@@ -50,11 +52,17 @@ class SchedulesPage extends StatelessWidget {
         ),
         body: BlocConsumer<SchedulesBloc, SchedulesState>(
           listener: (context, state) {
-            if (state is SchedulesSelected) {
+            if (state is SchedulesSelectedParams) {
               Navigator.pushNamed(
                 context,
                 '/schedule',
-                arguments: state.paramsList.list[state.selected],
+                arguments: state.params,
+              );
+            } else if (state is SchedulesSelectedSchedule) {
+              Navigator.pushNamed(
+                context,
+                '/schedule',
+                arguments: state.schedule,
               );
             } else if (state is SchedulesError) {
               Scaffold.of(context).showSnackBar(SnackBar(

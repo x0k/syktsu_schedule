@@ -1,8 +1,9 @@
 import 'package:meta/meta.dart';
 
 import '../../core/constants.dart';
+import '../../core/entities/schedule.dart';
 import '../../core/entities/schedule_params.dart';
-import '../../core/entities/schedule_params_list.dart';
+import '../../core/utils.dart';
 
 abstract class SchedulesState {
   const SchedulesState();
@@ -19,7 +20,7 @@ class SchedulesLoading extends SchedulesState {
 class SchedulesLoaded extends SchedulesState {
   final String searchPhrase;
   final ScheduleType type;
-  final ScheduleParamsList paramsList;
+  final EntityCollection<ScheduleParams> paramsList;
 
   const SchedulesLoaded(
       {@required this.type,
@@ -27,13 +28,23 @@ class SchedulesLoaded extends SchedulesState {
       @required this.paramsList});
 }
 
-class SchedulesSelected extends SchedulesLoaded {
-  final int selected;
-  const SchedulesSelected(
-      {@required this.selected,
+class SchedulesSelectedParams extends SchedulesLoaded {
+  final ScheduleParams params;
+  const SchedulesSelectedParams(
+      {@required this.params,
       @required ScheduleType type,
       @required String searchPhrase,
-      @required ScheduleParamsList paramsList})
+      @required EntityCollection<ScheduleParams> paramsList})
+      : super(type: type, searchPhrase: searchPhrase, paramsList: paramsList);
+}
+
+class SchedulesSelectedSchedule extends SchedulesLoaded {
+  final Schedule schedule;
+  const SchedulesSelectedSchedule(
+      {@required this.schedule,
+      @required ScheduleType type,
+      @required String searchPhrase,
+      @required EntityCollection<ScheduleParams> paramsList})
       : super(type: type, searchPhrase: searchPhrase, paramsList: paramsList);
 }
 

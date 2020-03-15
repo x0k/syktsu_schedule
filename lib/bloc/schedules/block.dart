@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 
+import '../../core/entities/schedule_params.dart';
 import '../../core/repositories/schedules_repository.dart';
+import '../../core/utils.dart';
 
 import 'event.dart';
 import 'state.dart';
@@ -16,23 +18,30 @@ class SchedulesBloc extends Bloc<SchedulesEvent, SchedulesState> {
 
   @override
   Stream<SchedulesState> mapEventToState(SchedulesEvent event) async* {
-    if (event is SelectSchedule) {
-      yield SchedulesSelected(
+    if (event is LoadSchedule) {
+      yield SchedulesSelectedParams(
           type: event.type,
-          selected: event.selected,
+          params: event.paramsList[event.selected],
           paramsList: event.paramsList,
           searchPhrase: event.searchPhrase);
-    } else {
+    } else if (event is GetSchedules) {
       yield SchedulesLoading();
-      if (event is GetSchedules) {
-        final data = await repository.fetchScheduleParamsList(
-            event.type, event.searchPhrase);
-        yield data.isRight()
-            ? SchedulesLoaded(
+      final data = await repository.fetchScheduleParamsListOrSchedule(
+          event.type, event.searchPhrase);
+      if (data.isRight()) {
+        final item = data.getOrElse(null);
+        yield item.isRight()
+            ? SchedulesSelectedSchedule(
+                type: item.right.type,
+                schedule: item.right,
+                searchPhrase: event.searchPhrase,
+                paramsList: EntityCollection([]))
+            : SchedulesLoaded(
                 type: event.type,
                 searchPhrase: event.searchPhrase,
-                paramsList: data.getOrElse(null))
-            : SchedulesError("Couldn't fetch schedules.");
+                paramsList: item.left);
+      } else {
+        SchedulesError("Couldn't fetch schedules.");
       }
     }
   }

@@ -1,48 +1,66 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 
+import '../../core/entities/schedule.dart';
 import '../../core/repositories/schedule_repository.dart';
+import '../../core/services/list_items_maker.dart';
+import '../../core/entities/list_items.dart';
 
 import 'event.dart';
 import 'state.dart';
 
 class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   final ScheduleRepository repository;
+  final ItemsMaker maker;
 
-  ScheduleBloc(this.repository);
+  ScheduleBloc(this.repository, this.maker);
+
+  Stream<ScheduleState> _loadWeek(
+      {List<ListItem> items, Schedule schedule, int weekIndex}) async* {
+    yield ScheduleLoaded(
+      schedule: schedule,
+      items: items,
+      loading: true,
+      week: weekIndex,
+    );
+    final week = schedule.weeks[weekIndex];
+    final data = await repository.fetchScheduleEvents(schedule.type, week.id);
+    yield data.isRight()
+        ? ScheduleLoaded(
+            schedule: schedule,
+            items: [...items, ...maker.makeItems(week, data.getOrElse(null))],
+            loading: false,
+            week: weekIndex)
+        : ScheduleError(message: "Couldn't fetch schedule events.");
+  }
+
+  Stream<ScheduleState> _loadInitialWeek(Schedule schedule) async* {
+    final now = DateTime.now();
+    final week =
+        schedule.weeks.lastIndexWhere((week) => week.startTime.isBefore(now));
+    yield* _loadWeek(items: [], schedule: schedule, weekIndex: week);
+  }
 
   @override
   ScheduleState get initialState => ScheduleInitial();
 
   @override
   Stream<ScheduleState> mapEventToState(ScheduleEvent event) async* {
-    if (event is GetSchedule) {
+    if (event is LoadWeek) {
+      yield* _loadWeek(
+          items: event.items, schedule: event.schedule, weekIndex: event.week);
+    } else if (event is LoadInitialWeek) {
+      yield* _loadInitialWeek(event.schedule);
+    } else if (event is LoadSchedule) {
       yield ScheduleLoading();
       final data = await repository.fetchSchedule(event.params);
-      yield data.isRight()
-          ? ScheduleLoaded(schedule: data.getOrElse(null))
-          : ScheduleError(message: "Couldn't fetch schedule.");
-    } else if (event is LoadWeek) {
-      yield ScheduleEvents(
-        schedule: event.schedule,
-        events: event.events,
-        loading: true,
-        week: event.week,
-      );
-      final schedule = event.schedule;
-      final data = await repository.fetchScheduleEvents(
-          schedule.type, schedule.weeks[event.week].id);
-      yield data.isRight()
-          ? ScheduleEvents(
-              schedule: schedule,
-              events: [
-                ...event.events,
-                schedule.weeks[event.week],
-                ...data.getOrElse(null).list
-              ],
-              loading: false,
-              week: event.week)
-          : ScheduleError(message: "Couldn't fetch schedule events.");
+      if (data.isRight()) {
+        final schedule = data.getOrElse(null);
+        yield* _loadInitialWeek(schedule);
+      } else {
+        yield ScheduleError(
+            message: "Couldn't fetch schedule ${event.params.title}");
+      }
     }
   }
 }

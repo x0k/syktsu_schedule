@@ -4,8 +4,8 @@ import '../constants.dart';
 
 class ScheduleParams {
   final String id;
-  final String title;
   final ScheduleType type;
-  ScheduleParams(
-      {@required this.type, @required this.title, @required this.id});
+  final String title;
+  const ScheduleParams(
+      {@required this.id, @required this.type, @required this.title});
 }

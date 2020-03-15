@@ -1,7 +1,9 @@
 import 'package:html/dom.dart' show Document, Element;
 
 import '../core/entities/event.dart';
-import '../core/entities/event_list.dart';
+import '../core/utils.dart';
+
+import 'utils.dart';
 
 class RowsKeeper {
   final int day;
@@ -9,21 +11,18 @@ class RowsKeeper {
   RowsKeeper({this.day, this.rows});
 }
 
-class EventListModel extends EventList {
+class EventListModel extends EntityCollection<Event> {
   static const _rowsSelector = 'table.schedule > tbody > tr';
 
   static const _dayCellClass = 'dayofweek';
 
   static const _subGroupSelector = 'b';
 
-  static Iterable<Event> _makeEvents(int day, List<Element> cells) {
-    final int number = int.parse(cells[0].text);
+  static Iterable<Event> _makeEvents(int day, Iterable<Element> cells) {
+    final int number = int.parse(cells.first.text);
     final subjects = cells.skip(2);
     return subjects.where((subject) => subject.text.length > 0).map((subject) {
-      final lines = subject.text
-          .split('\n')
-          .map((line) => line.replaceAll('\t', '').trim())
-          .toList();
+      final lines = toLines(subject.text);
       final teacherAndPlaceText = lines[1].split(', ');
       return Event(
         day: day,
@@ -41,21 +40,18 @@ class EventListModel extends EventList {
         .querySelectorAll(_rowsSelector)
         .skip(1)
         .fold(RowsKeeper(day: 0, rows: []), (RowsKeeper acc, Element row) {
-      final day = acc.day + 1;
+      final isDayCell = row.children[0].classes.contains(_dayCellClass);
+      final day = acc.day + (isDayCell ? 1 : 0);
       final rows = [
         ...acc.rows,
-        ..._makeEvents(
-            day,
-            row.children[0].classes.contains(_dayCellClass)
-                ? row.children.skip(1).toList()
-                : row.children)
+        ..._makeEvents(day, isDayCell ? row.children.skip(1) : row.children)
       ];
       return RowsKeeper(day: day, rows: rows);
     });
-    return EventListModel(list: keeper.rows);
+    return EventListModel(keeper.rows);
   }
 
-  EventListModel({List<Event> list}) : super(list: list);
+  EventListModel(List<Event> list) : super(list);
 
   Map<String, dynamic> _eventToJSON(Event event) {
     return {
@@ -68,7 +64,7 @@ class EventListModel extends EventList {
     };
   }
 
-  Map<String, dynamic> toJSON() {
-    return {'list': list.map((event) => _eventToJSON(event)).toList()};
+  List<Map<String, dynamic>> toJSON() {
+    return map((event) => _eventToJSON(event)).toList();
   }
 }

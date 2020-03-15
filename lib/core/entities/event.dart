@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
+import '../constants.dart';
+
 class Event extends Equatable {
   final int day;
   final int number;
@@ -19,4 +21,6 @@ class Event extends Equatable {
 
   @override
   List<Object> get props => [day, number, subject, place, subGroup];
+
+  String get call => NUM_TO_CALL_MAP[number];
 }

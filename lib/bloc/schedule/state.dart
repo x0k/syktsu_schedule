@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 
 import '../../core/entities/schedule.dart';
+import '../../core/entities/list_items.dart';
 
 abstract class ScheduleState {
   const ScheduleState();
@@ -16,17 +17,12 @@ class ScheduleLoading extends ScheduleState {
 
 class ScheduleLoaded extends ScheduleState {
   final Schedule schedule;
-  const ScheduleLoaded({@required this.schedule});
-}
-
-class ScheduleEvents extends ScheduleState {
-  final Schedule schedule;
-  final List<dynamic> events;
+  final List<ListItem> items;
   final int week;
   final bool loading;
-  const ScheduleEvents(
+  const ScheduleLoaded(
       {@required this.schedule,
-      @required this.events,
+      @required this.items,
       @required this.week,
       @required this.loading});
 }

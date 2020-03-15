@@ -2,17 +2,21 @@ import 'package:meta/meta.dart';
 
 import '../constants.dart';
 
-import './week.dart';
+import 'schedule_params.dart';
+import 'week.dart';
 
-class Schedule {
-  String id;
-  ScheduleType type;
-  DateTime updateTime;
-  List<Week> weeks;
+class Schedule extends ScheduleParams {
 
-  Schedule(
-      {@required this.id,
-      @required this.type,
+  final DateTime updateTime;
+  final List<Week> weeks;
+
+  const Schedule(
+      {@required String id,
+      @required ScheduleType type,
+      @required String title,
       @required this.updateTime,
-      @required this.weeks});
+      @required this.weeks})
+      : super(id: id, type: type, title: title);
+
+  String get updateTimeString => dateTimeFormat.format(updateTime);
 }
