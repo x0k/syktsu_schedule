@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 import '../../core/constants.dart';
 import '../../core/entities/schedule.dart';
 import '../../core/entities/schedule_params.dart';
-import '../../core/utils.dart';
 
 abstract class SchedulesState {
   const SchedulesState();
@@ -20,7 +19,7 @@ class SchedulesLoading extends SchedulesState {
 class SchedulesLoaded extends SchedulesState {
   final String searchPhrase;
   final ScheduleType type;
-  final EntityCollection<ScheduleParams> paramsList;
+  final List<ScheduleParams> paramsList;
 
   const SchedulesLoaded(
       {@required this.type,
@@ -34,7 +33,7 @@ class SchedulesSelectedParams extends SchedulesLoaded {
       {@required this.params,
       @required ScheduleType type,
       @required String searchPhrase,
-      @required EntityCollection<ScheduleParams> paramsList})
+      @required List<ScheduleParams> paramsList})
       : super(type: type, searchPhrase: searchPhrase, paramsList: paramsList);
 }
 
@@ -44,7 +43,7 @@ class SchedulesSelectedSchedule extends SchedulesLoaded {
       {@required this.schedule,
       @required ScheduleType type,
       @required String searchPhrase,
-      @required EntityCollection<ScheduleParams> paramsList})
+      @required List<ScheduleParams> paramsList})
       : super(type: type, searchPhrase: searchPhrase, paramsList: paramsList);
 }
 

@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 
-import '../../core/entities/schedule_params.dart';
-import '../../core/repositories/schedules_repository.dart';
-import '../../core/utils.dart';
+import '../../core/repositories/schedule_params_list_repository.dart';
 
 import 'event.dart';
 import 'state.dart';
@@ -26,23 +24,23 @@ class SchedulesBloc extends Bloc<SchedulesEvent, SchedulesState> {
           searchPhrase: event.searchPhrase);
     } else if (event is GetSchedules) {
       yield SchedulesLoading();
-      final data = await repository.fetchScheduleParamsListOrSchedule(
-          event.type, event.searchPhrase);
-      if (data.isRight()) {
-        final item = data.getOrElse(null);
-        yield item.isRight()
-            ? SchedulesSelectedSchedule(
-                type: item.right.type,
-                schedule: item.right,
-                searchPhrase: event.searchPhrase,
-                paramsList: EntityCollection([]))
-            : SchedulesLoaded(
-                type: event.type,
-                searchPhrase: event.searchPhrase,
-                paramsList: item.left);
-      } else {
-        SchedulesError("Couldn't fetch schedules.");
-      }
+      await for (var data in repository.fetchScheduleParamsListOrSchedule(
+          event.type, event.searchPhrase))
+        if (data.isRight()) {
+          final item = data.getOrElse(null);
+          yield item.isRight()
+              ? SchedulesSelectedSchedule(
+                  type: item.right.params.type,
+                  schedule: item.right,
+                  searchPhrase: event.searchPhrase,
+                  paramsList: [])
+              : SchedulesLoaded(
+                  type: event.type,
+                  searchPhrase: event.searchPhrase,
+                  paramsList: item.left);
+        } else {
+          SchedulesError("Couldn't fetch schedules.");
+        }
     }
   }
 }

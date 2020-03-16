@@ -21,9 +21,10 @@ class _SchedulePageState extends State<SchedulePage> {
     return state.week + 1 >= 0 && state.week + 2 < state.schedule.weeks.length;
   }
 
-  void _loadNextWeek(ScheduleBloc bloc,
-      {Schedule schedule, List<ListItem> items, int week}) {
-    bloc.add(LoadWeek(schedule: schedule, items: items, week: week + 1));
+  void _loadNextWeek(ScheduleBloc bloc, Schedule schedule, List<ListItem> items,
+      int week, int version) {
+    bloc.add(LoadWeek(
+        schedule: schedule, items: items, week: week + 1, version: version));
   }
 
   Widget buildLoading() {
@@ -57,7 +58,7 @@ class _SchedulePageState extends State<SchedulePage> {
                         Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: Text(
-                              event.call,
+                              event.numberName,
                               style: textTheme.overline,
                             )),
                         if (event.subGroup != null)
@@ -100,10 +101,8 @@ class _SchedulePageState extends State<SchedulePage> {
                   child: Text('Показать больше'),
                   onPressed: () {
                     final bloc = _getBloc(context);
-                    _loadNextWeek(bloc,
-                        schedule: state.schedule,
-                        items: state.items,
-                        week: state.week + 1);
+                    _loadNextWeek(
+                        bloc, state.schedule, state.items, state.week + 1, 0);
                   },
                 )
           : buildItem(context, items[i]),
@@ -123,18 +122,15 @@ class _SchedulePageState extends State<SchedulePage> {
             (state is ScheduleLoaded) &&
             !state.loading &&
             _canLoadMore(state)) {
-          _loadNextWeek(bloc,
-              schedule: state.schedule,
-              items: state.items,
-              week: state.week + 1);
+          _loadNextWeek(bloc, state.schedule, state.items, state.week + 1, 0);
         }
       });
       final Object arg = ModalRoute.of(context).settings.arguments;
       if (arg is Schedule) {
         final now = DateTime.now();
-        final week =
-            arg.weeks.lastIndexWhere((week) => week.startTime.isBefore(now));
-        _loadNextWeek(bloc, schedule: arg, items: [], week: week - 1);
+        final week = arg.weeks
+            .lastIndexWhere((week) => week.startDateTime.isBefore(now));
+        _loadNextWeek(bloc, arg, [], week - 1, 0);
       } else if (arg is ScheduleParams) {
         bloc.add(LoadSchedule(params: arg));
       }
@@ -166,12 +162,12 @@ class _SchedulePageState extends State<SchedulePage> {
                   centerTitle: true,
                   title: Column(children: [
                     if (state is ScheduleLoaded) ...[
-                      Text('Расписание ${state.schedule.title}',
+                      Text('Расписание ${state.schedule.params.title}',
                           style: textTheme.subtitle1
                               .copyWith(color: Colors.white)),
                       GestureDetector(
                         child: Text(
-                            'Обновлено ${state.schedule.updateTimeString}',
+                            'Обновлено ${state.schedule.versions[state.version].dateTimeName}',
                             style: textTheme.caption
                                 .copyWith(color: Colors.white60)),
                         onTap: () {},

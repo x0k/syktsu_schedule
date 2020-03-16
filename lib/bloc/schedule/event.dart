@@ -22,6 +22,10 @@ class LoadWeek extends ScheduleEvent {
   final Schedule schedule;
   final List<ListItem> items;
   final int week;
+  final int version;
   const LoadWeek(
-      {@required this.schedule, @required this.items, @required this.week});
+      {@required this.schedule,
+      @required this.items,
+      @required this.week,
+      @required this.version});
 }

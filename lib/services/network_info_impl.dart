@@ -1,6 +1,6 @@
 import 'package:data_connection_checker/data_connection_checker.dart';
 
-import '../core/services/network_info.dart';
+import '../data/services/network_info.dart';
 
 class SyktsuNetworkInfo implements NetworkInfo {
   final DataConnectionChecker checker;

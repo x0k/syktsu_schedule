@@ -19,10 +19,12 @@ class ScheduleLoaded extends ScheduleState {
   final Schedule schedule;
   final List<ListItem> items;
   final int week;
+  final int version;
   final bool loading;
   const ScheduleLoaded(
       {@required this.schedule,
       @required this.items,
+      @required this.version,
       @required this.week,
       @required this.loading});
 }

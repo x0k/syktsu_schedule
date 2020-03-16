@@ -1,40 +1,76 @@
 import 'package:dartz/dartz.dart';
 import 'package:meta/meta.dart';
+import 'package:syktsu_schedule/core/entities/version.dart';
 
-import '../core/constants.dart';
 import '../core/entities/event.dart';
 import '../core/entities/schedule.dart';
-import '../core/entities/schedule_params.dart';
 import '../core/errors/failures.dart';
 import '../core/errors/exceptions.dart';
 import '../core/repositories/schedule_repository.dart';
-import '../core/utils.dart';
 
-import 'sources/schedule_remote_data_source.dart';
+import 'services/schedule_local_data_source.dart';
+import 'services/schedule_remote_data_source.dart';
 
 class SyktsuScheduleRepository extends ScheduleRepository {
-  final ScheduleRemoteDataSource remoteDataSource;
+  final ScheduleLocalDataSource local;
+  final ScheduleRemoteDataSource remote;
 
-  SyktsuScheduleRepository({@required this.remoteDataSource});
+  SyktsuScheduleRepository({@required this.local, @required this.remote});
 
-  static Future<Either<Failure, T>> _makeRequest<T>(
-      Future<T> future) async {
+  @override
+  Stream<Either<Failure, List<Version>>> fetchScheduleVersions(
+      Schedule schedule) async* {
     try {
-      final result = await future;
-      return Right(result);
+      final localVersions = await local.fetchScheduleVersions(schedule.params);
+      yield Right(localVersions);
+      final remoteVersion = await remote.fetchScheduleVersion(schedule.params);
+      if (localVersions.firstWhere(
+              (version) =>
+                  version.dateTime.compareTo(remoteVersion.dateTime) == 0,
+              orElse: () => null) ==
+          null) {
+        final savedVersion =
+            await local.saveScheduleVersion(schedule, remoteVersion);
+        yield Right([...localVersions, savedVersion]);
+      }
     } on ServerException {
-      return Left(ServerFailure());
+      yield Left(ServerFailure());
+    } on LocalException {
+      yield Left(LocalFailure());
     }
   }
 
   @override
-  Future<Either<Failure, Schedule>> fetchSchedule(ScheduleParams params) {
-    return _makeRequest(remoteDataSource.fetchSchedule(params));
-  }
-
-  @override
-  Future<Either<Failure, EntityCollection<Event>>> fetchScheduleEvents(
-      ScheduleType type, String weekId) {
-    return _makeRequest(remoteDataSource.fetchScheduleEvents(type, weekId));
+  Stream<Either<Failure, List<Event>>> fetchScheduleEvents(
+      Schedule schedule, int versionIndex, int weekIndex) async* {
+    try {
+      final localEvents =
+          await local.fetchScheduleEvents(schedule, versionIndex, weekIndex);
+      if (localEvents.length > 0) {
+        yield Right(localEvents);
+      } else {
+        final remoteVersion =
+            await remote.fetchScheduleVersion(schedule.params);
+        if (schedule.versions[versionIndex].dateTime
+                .compareTo(remoteVersion.dateTime) ==
+            0) {
+          final remoteEvents =
+              await remote.fetchScheduleEvents(schedule, weekIndex);
+          if (remoteEvents.length > 0) {
+            final savedEvents = await local.saveScheduleEvents(
+                schedule, versionIndex, weekIndex, remoteEvents);
+            yield Right(savedEvents);
+          }
+        } else {
+          throw NotAvailableVersionException();
+        }
+      }
+    } on ServerException {
+      yield Left(ServerFailure());
+    } on LocalException {
+      yield Left(LocalFailure());
+    } on NotAvailableVersionException {
+      yield Left(NotAvailableVersionFailure());
+    }
   }
 }
