@@ -28,7 +28,7 @@ class SyktsuScheduleLocalDataSource extends SyktsuLocalDataSource
 
   @override
   Future<List<Event>> saveScheduleEvents(
-      Schedule schedule, int versionIndex, int weekIndex, List<Event> events) {
+      Schedule schedule, int versionIndex, int weekIndex, List<Event> events) async {
     final paramsId = schedule.params.id;
     final versionId = schedule.versions[versionIndex].id;
     final weekId = schedule.weeks[weekIndex].id;
@@ -36,8 +36,7 @@ class SyktsuScheduleLocalDataSource extends SyktsuLocalDataSource
   }
 
   @override
-  Future<Version> saveScheduleVersion(Schedule schedule, Version version) {
-    final paramsId = schedule.params.id;
-    return queryService.saveScheduleVersion(paramsId, version);
+  Future<Version> saveScheduleVersion(ScheduleParams params, Version version) {
+    return queryService.saveScheduleVersion(params.id, version);
   }
 }

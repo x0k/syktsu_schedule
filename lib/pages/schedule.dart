@@ -14,17 +14,8 @@ class SchedulePage extends StatefulWidget {
 class _SchedulePageState extends State<SchedulePage> {
   ScrollController _scrollController = ScrollController();
 
-  ScheduleBloc _getBloc(BuildContext context) =>
-      BlocProvider.of<ScheduleBloc>(context);
-
   bool _canLoadMore(ScheduleLoaded state) {
     return state.week + 1 >= 0 && state.week + 2 < state.schedule.weeks.length;
-  }
-
-  void _loadNextWeek(ScheduleBloc bloc, Schedule schedule, List<ListItem> items,
-      int week, int version) {
-    bloc.add(LoadWeek(
-        schedule: schedule, items: items, week: week + 1, version: version));
   }
 
   Widget buildLoading() {
@@ -100,9 +91,12 @@ class _SchedulePageState extends State<SchedulePage> {
               : FlatButton(
                   child: Text('Показать больше'),
                   onPressed: () {
-                    final bloc = _getBloc(context);
-                    _loadNextWeek(
-                        bloc, state.schedule, state.items, state.week + 1, 0);
+                    final bloc = context.bloc<ScheduleBloc>();
+                    bloc.add(LoadWeek(
+                        schedule: state.schedule,
+                        items: state.items,
+                        week: state.week + 1,
+                        version: state.version));
                   },
                 )
           : buildItem(context, items[i]),
@@ -112,25 +106,26 @@ class _SchedulePageState extends State<SchedulePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final bloc = _getBloc(context);
+    final bloc = context.bloc<ScheduleBloc>();
     final state = bloc.state;
     if (state is ScheduleInitial) {
       _scrollController.addListener(() {
-        final bloc = _getBloc(context);
+        final bloc = context.bloc<ScheduleBloc>();
         final state = bloc.state;
         if (_scrollController.position.extentAfter < 500 &&
             (state is ScheduleLoaded) &&
             !state.loading &&
             _canLoadMore(state)) {
-          _loadNextWeek(bloc, state.schedule, state.items, state.week + 1, 0);
+          bloc.add(LoadWeek(
+              schedule: state.schedule,
+              items: state.items,
+              week: state.week + 1,
+              version: state.version));
         }
       });
       final Object arg = ModalRoute.of(context).settings.arguments;
       if (arg is Schedule) {
-        final now = DateTime.now();
-        final week = arg.weeks
-            .lastIndexWhere((week) => week.startDateTime.isBefore(now));
-        _loadNextWeek(bloc, arg, [], week - 1, 0);
+        bloc.add(LoadInitialWeek(schedule: arg, version: 0));
       } else if (arg is ScheduleParams) {
         bloc.add(LoadSchedule(params: arg));
       }
@@ -146,7 +141,6 @@ class _SchedulePageState extends State<SchedulePage> {
 
   @override
   Widget build(BuildContext context) {
-    final ScheduleParams params = ModalRoute.of(context).settings.arguments;
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     return BlocConsumer<ScheduleBloc, ScheduleState>(
@@ -170,10 +164,33 @@ class _SchedulePageState extends State<SchedulePage> {
                             'Обновлено ${state.schedule.versions[state.version].dateTimeName}',
                             style: textTheme.caption
                                 .copyWith(color: Colors.white60)),
-                        onTap: () {},
+                        onTap: () {
+                          final versions = state.schedule.versions;
+                          final bloc = context.bloc<ScheduleBloc>();
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return SimpleDialog(
+                                title: const Text('Выберите версию'),
+                                children: <Widget>[
+                                  for (var i = 0; i < versions.length; i++)
+                                    SimpleDialogOption(
+                                      child: Text(versions[i].dateTimeName),
+                                      onPressed: () {
+                                        bloc.add(LoadInitialWeek(
+                                            schedule: state.schedule,
+                                            version: i));
+                                        Navigator.of(context).pop();
+                                      },
+                                    )
+                                ],
+                              );
+                            },
+                          );
+                        },
                       )
                     ] else
-                      Text('Расписание ${params.title}'),
+                      Text('Загрузка...'),
                   ])),
               body: buildBody(state),
             ));

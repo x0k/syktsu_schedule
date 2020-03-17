@@ -82,6 +82,7 @@ class SyktsuQueryService implements QueryService {
       WHERE ${ParamsTable.type} = ? AND (
         ${ParamsTable.id} LIKE '%$searchPhrase%' OR ${ParamsTable.title} LIKE '%$searchPhrase%'
       )
+      ORDER BY ${ParamsTable.title} ASC
       ''',
       arguments: [scheduleTypeNames[type]],
       makeModel: (data) => ScheduleParamsModel.fromJSON(data),
@@ -144,7 +145,8 @@ class SyktsuQueryService implements QueryService {
       ParamsVersionTable.paramsId: paramsId,
       ParamsVersionTable.versionId: versionId
     };
-    await db.insert(Table.paramsVersion, paramsVersionData);
+    await db.insert(Table.paramsVersion, paramsVersionData,
+        conflictAlgorithm: ConflictAlgorithm.replace);
     return VersionModel(id: versionId, dateTime: version.dateTime);
   }
 
@@ -161,7 +163,8 @@ class SyktsuQueryService implements QueryService {
     final paramsWeekData = {ParamsWeekTable.paramsId: paramsId};
     weeks.forEach((week) {
       paramsWeekData[ParamsWeekTable.weekId] = week.id;
-      batch.insert(Table.paramsWeek, paramsWeekData);
+      batch.insert(Table.paramsWeek, paramsWeekData,
+          conflictAlgorithm: ConflictAlgorithm.replace);
     });
     await batch.commit(noResult: true);
     return weeks;

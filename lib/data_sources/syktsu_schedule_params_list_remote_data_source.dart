@@ -34,16 +34,19 @@ class SyktsuScheduleParamsListRemoteDatasource
           ScheduleType type, String searchPhrase) {
     final body = Map<String, String>();
     body[_searchFields[type]] = searchPhrase;
-    return SyktsuRemoteDataSource.makeRequest(type, body)
-        .then((document) => ObjectsUnion(parser.hasSchedule(document)
-            ? _makeSchedule(
-                ScheduleParams(
-                  id: searchPhrase,
-                  type: type,
-                  title: parser.extractScheduleTitle(document),
-                ),
-                document)
-            : parser.extractSchedulePramsList(type, document)));
+    return SyktsuRemoteDataSource.makeRequest(type, body).then((document) {
+      if (parser.hasSchedule(document)) {
+        final id = parser.extractScheduleTitle(document);
+        return ObjectsUnion(_makeSchedule(
+            ScheduleParams(
+              id: id,
+              type: type,
+              title: id,
+            ),
+            document));
+      }
+      return ObjectsUnion(parser.extractSchedulePramsList(type, document));
+    });
   }
 
   @override

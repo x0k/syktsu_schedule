@@ -1,11 +1,17 @@
 import 'package:intl/intl.dart';
 
-enum ScheduleType { group, teacher, classroom }
+enum ScheduleType { teacher, group, classroom }
 
 const scheduleTypeNames = const {
   ScheduleType.teacher: 'teacher',
+  ScheduleType.group: 'group',
   ScheduleType.classroom: 'classroom',
-  ScheduleType.group: 'group'
+};
+
+const scheduleTypeTitles = const {
+  ScheduleType.teacher: 'Преподаватель',
+  ScheduleType.classroom: 'Аудитория',
+  ScheduleType.group: 'Группа'
 };
 
 const scheduleNameTypes = const {

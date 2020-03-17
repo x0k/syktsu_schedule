@@ -7,10 +7,22 @@ abstract class SchedulesEvent {
   const SchedulesEvent();
 }
 
-class GetSchedules extends SchedulesEvent {
-  final String searchPhrase;
+class ScheduleParamsFetch extends SchedulesEvent {
   final ScheduleType type;
-  const GetSchedules({@required this.type, @required this.searchPhrase});
+  final String searchPhrase;
+  const ScheduleParamsFetch({@required this.type, @required this.searchPhrase});
+}
+
+class GetLocalScheduleParamsList extends ScheduleParamsFetch {
+  const GetLocalScheduleParamsList(
+      {@required ScheduleType type, @required String searchPhrase})
+      : super(type: type, searchPhrase: searchPhrase);
+}
+
+class GetRemoteScheduleParamsList extends ScheduleParamsFetch {
+  const GetRemoteScheduleParamsList(
+      {@required ScheduleType type, @required String searchPhrase})
+      : super(type: type, searchPhrase: searchPhrase);
 }
 
 class LoadSchedule extends SchedulesEvent {

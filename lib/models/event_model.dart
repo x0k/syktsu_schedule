@@ -27,7 +27,7 @@ class EventModel extends Event {
         day: data[EventTable.day],
         number: data[EventTable.number],
         place: data[EventTable.place],
-        subGroup: data[EventTable.subGroup],
+        subGroup: data[EventTable.subGroup].toString(),
         subject: data[EventTable.subject],
         teacher: data[EventTable.teacher]);
   }

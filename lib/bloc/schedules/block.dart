@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:syktsu_schedule/core/constants.dart';
 
 import '../../core/repositories/schedule_params_list_repository.dart';
 
@@ -12,7 +13,8 @@ class SchedulesBloc extends Bloc<SchedulesEvent, SchedulesState> {
   SchedulesBloc(this.repository);
 
   @override
-  SchedulesState get initialState => SchedulesInitial();
+  SchedulesState get initialState =>
+      SchedulesInitial(searchPhrase: '', type: ScheduleType.group);
 
   @override
   Stream<SchedulesState> mapEventToState(SchedulesEvent event) async* {
@@ -22,25 +24,38 @@ class SchedulesBloc extends Bloc<SchedulesEvent, SchedulesState> {
           params: event.paramsList[event.selected],
           paramsList: event.paramsList,
           searchPhrase: event.searchPhrase);
-    } else if (event is GetSchedules) {
-      yield SchedulesLoading();
-      await for (var data in repository.fetchScheduleParamsListOrSchedule(
-          event.type, event.searchPhrase))
-        if (data.isRight()) {
-          final item = data.getOrElse(null);
-          yield item.isRight()
-              ? SchedulesSelectedSchedule(
-                  type: item.right.params.type,
-                  schedule: item.right,
-                  searchPhrase: event.searchPhrase,
-                  paramsList: [])
-              : SchedulesLoaded(
-                  type: event.type,
-                  searchPhrase: event.searchPhrase,
-                  paramsList: item.left);
-        } else {
-          SchedulesError("Couldn't fetch schedules.");
-        }
+    } else if (event is GetLocalScheduleParamsList) {
+      final data = await repository.fetchLocalScheduleParamsList(
+          event.type, event.searchPhrase);
+      if (data.isRight()) {
+        final item = data.getOrElse(null);
+        yield SchedulesLoaded(
+            type: event.type,
+            searchPhrase: event.searchPhrase,
+            paramsList: item);
+      } else {
+        SchedulesError("Couldn't fetch schedules.");
+      }
+    } else if (event is GetRemoteScheduleParamsList) {
+      yield SchedulesLoading(
+          searchPhrase: event.searchPhrase, type: event.type);
+      final data = await repository.fetchRemoteScheduleParamsListOrSchedule(
+          event.type, event.searchPhrase);
+      if (data.isRight()) {
+        final item = data.getOrElse(null);
+        yield item.isRight()
+            ? SchedulesSelectedSchedule(
+                type: item.right.params.type,
+                schedule: item.right,
+                searchPhrase: event.searchPhrase,
+                paramsList: [])
+            : SchedulesLoaded(
+                type: event.type,
+                searchPhrase: event.searchPhrase,
+                paramsList: item.left);
+      } else {
+        SchedulesError("Couldn't fetch schedules.");
+      }
     }
   }
 }

@@ -67,7 +67,7 @@ const sqlCommands = [
   '''
   CREATE TABLE ${Table.version} (
     ${VersionTable.id} INTEGER PRIMARY KEY AUTOINCREMENT,
-    ${VersionTable.dateTime} INTEGER
+    ${VersionTable.dateTime} INTEGER UNIQUE
   )''',
   '''
   CREATE TABLE ${Table.week} (

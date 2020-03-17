@@ -3,74 +3,81 @@ import 'package:meta/meta.dart';
 import 'package:syktsu_schedule/core/entities/version.dart';
 
 import '../core/entities/event.dart';
+import '../core/entities/schedule_params.dart';
 import '../core/entities/schedule.dart';
 import '../core/errors/failures.dart';
 import '../core/errors/exceptions.dart';
 import '../core/repositories/schedule_repository.dart';
+import '../utils.dart';
 
 import 'services/schedule_local_data_source.dart';
 import 'services/schedule_remote_data_source.dart';
+import 'services/network_info.dart';
 
 class SyktsuScheduleRepository extends ScheduleRepository {
   final ScheduleLocalDataSource local;
   final ScheduleRemoteDataSource remote;
+  final NetworkInfo network;
 
-  SyktsuScheduleRepository({@required this.local, @required this.remote});
+  SyktsuScheduleRepository(
+      {@required this.local, @required this.remote, @required this.network});
+
+  bool _versionComparator(Version a, Version b) =>
+      a.dateTime.compareTo(b.dateTime) == 0;
 
   @override
-  Stream<Either<Failure, List<Version>>> fetchScheduleVersions(
-      Schedule schedule) async* {
+  Future<Either<Failure, List<Version>>> fetchScheduleVersions(
+      ScheduleParams params) async {
     try {
-      final localVersions = await local.fetchScheduleVersions(schedule.params);
-      yield Right(localVersions);
-      final remoteVersion = await remote.fetchScheduleVersion(schedule.params);
-      if (localVersions.firstWhere(
-              (version) =>
-                  version.dateTime.compareTo(remoteVersion.dateTime) == 0,
-              orElse: () => null) ==
-          null) {
-        final savedVersion =
-            await local.saveScheduleVersion(schedule, remoteVersion);
-        yield Right([...localVersions, savedVersion]);
+      final List<Version> localVersions =
+          await local.fetchScheduleVersions(params);
+      if (await network.isConnected) {
+        final remoteVersion = await remote.fetchScheduleVersion(params);
+        final uniqVersions = uniqItems<Version>(
+            localVersions, [remoteVersion], _versionComparator);
+        if (uniqVersions.length > 0) {
+          final savedVersion =
+              await local.saveScheduleVersion(params, remoteVersion);
+          return Right([...localVersions, savedVersion]);
+        }
       }
+      return Right(localVersions);
     } on ServerException {
-      yield Left(ServerFailure());
+      return Left(ServerFailure());
     } on LocalException {
-      yield Left(LocalFailure());
+      return Left(LocalFailure());
     }
   }
 
   @override
-  Stream<Either<Failure, List<Event>>> fetchScheduleEvents(
-      Schedule schedule, int versionIndex, int weekIndex) async* {
+  Future<Either<Failure, List<Event>>> fetchScheduleEvents(
+      Schedule schedule, int versionIndex, int weekIndex) async {
     try {
-      final localEvents =
-          await local.fetchScheduleEvents(schedule, versionIndex, weekIndex);
-      if (localEvents.length > 0) {
-        yield Right(localEvents);
-      } else {
+      if (await network.isConnected) {
         final remoteVersion =
             await remote.fetchScheduleVersion(schedule.params);
-        if (schedule.versions[versionIndex].dateTime
-                .compareTo(remoteVersion.dateTime) ==
-            0) {
+        if (_versionComparator(schedule.versions[versionIndex], remoteVersion)) {
           final remoteEvents =
               await remote.fetchScheduleEvents(schedule, weekIndex);
           if (remoteEvents.length > 0) {
-            final savedEvents = await local.saveScheduleEvents(
-                schedule, versionIndex, weekIndex, remoteEvents);
-            yield Right(savedEvents);
+            final localEvents = await local.fetchScheduleEvents(
+                schedule, versionIndex, weekIndex);
+            if (remoteEvents.length != localEvents.length) {
+              final savedEvents = await local.saveScheduleEvents(
+                  schedule, versionIndex, weekIndex, remoteEvents);
+              return Right(savedEvents);
+            }
+            return Right(localEvents);
           }
-        } else {
-          throw NotAvailableVersionException();
         }
       }
+      final localEvents =
+          await local.fetchScheduleEvents(schedule, versionIndex, weekIndex);
+      return Right(localEvents);
     } on ServerException {
-      yield Left(ServerFailure());
+      return Left(ServerFailure());
     } on LocalException {
-      yield Left(LocalFailure());
-    } on NotAvailableVersionException {
-      yield Left(NotAvailableVersionFailure());
+      return Left(LocalFailure());
     }
   }
 }

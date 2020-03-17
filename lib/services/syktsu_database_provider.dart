@@ -23,8 +23,8 @@ class SyktsuDatabaseProvider extends DatabaseProvider {
   }
 
   _createDatabase() async {
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, dbName);
+    String databasesPath = await getDatabasesPath();
+    String path = join(databasesPath, dbName);
     var database = await openDatabase(path,
         version: dbVersion, onCreate: _onCreate, onUpgrade: _onUpgrade);
     return database;
@@ -32,7 +32,6 @@ class SyktsuDatabaseProvider extends DatabaseProvider {
 
   void _onUpgrade(Database database, int oldVersion, int newVersion) {}
   void _onCreate(Database database, int version) async {
-    print('on db create');
     await Future.wait(sqlCommands.map((command) => database.execute(command)));
   }
 }

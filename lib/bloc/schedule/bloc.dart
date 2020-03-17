@@ -27,27 +27,28 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       loading: true,
       week: weekIndex,
     );
-    await for (var data in scheduleRepository.fetchScheduleEvents(
-        schedule, versionIndex, weekIndex))
-      yield data.isRight()
-          ? ScheduleLoaded(
-              schedule: schedule,
-              items: [
-                ...items,
-                ...maker.makeItems(
-                    schedule.weeks[weekIndex], data.getOrElse(null))
-              ],
-              loading: false,
-              week: weekIndex,
-              version: versionIndex)
-          : ScheduleError(message: "Couldn't fetch schedule events.");
+    final data = await scheduleRepository.fetchScheduleEvents(
+        schedule, versionIndex, weekIndex);
+    yield data.isRight()
+        ? ScheduleLoaded(
+            schedule: schedule,
+            items: [
+              ...items,
+              ...maker.makeItems(
+                  schedule.weeks[weekIndex], data.getOrElse(null))
+            ],
+            loading: false,
+            week: weekIndex,
+            version: versionIndex)
+        : ScheduleError(message: "Couldn't fetch schedule events.");
   }
 
-  Stream<ScheduleState> _loadInitialWeek(Schedule schedule) async* {
+  Stream<ScheduleState> _loadInitialWeek(
+      Schedule schedule, int version) async* {
     final now = DateTime.now();
     final week = schedule.weeks
         .lastIndexWhere((week) => week.startDateTime.isBefore(now));
-    yield* _loadWeek([], schedule, week > -1 ? week : 0, 0);
+    yield* _loadWeek([], schedule, week > -1 ? week : 0, version);
   }
 
   @override
@@ -58,13 +59,13 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     if (event is LoadWeek) {
       yield* _loadWeek(event.items, event.schedule, event.week, event.version);
     } else if (event is LoadInitialWeek) {
-      yield* _loadInitialWeek(event.schedule);
+      yield* _loadInitialWeek(event.schedule, event.version);
     } else if (event is LoadSchedule) {
       yield ScheduleLoading();
       final data = await paramsListRepository.fetchSchedule(event.params);
       if (data.isRight()) {
         final schedule = data.getOrElse(null);
-        yield* _loadInitialWeek(schedule);
+        yield* _loadInitialWeek(schedule, 0);
       } else {
         yield ScheduleError(
             message: "Couldn't fetch schedule ${event.params.title}");

@@ -17,8 +17,7 @@ class RowsKeeper {
 class SyktsuDocumentParser extends DocumentParser {
   static const _scheduleTitleSelector = 'h3[style]';
   static const _scheduleUpdateTextSelector = 'center > i';
-  static const _scheduleWeekSelector =
-      'select[name=\'weeks\'] > option:not([disabled="disabled"])';
+  static const _scheduleWeekSelector = 'select[name=\'weeks\'] > option';
   static const _scheduleRowsSelector = 'table.schedule > tbody > tr';
   static const _scheduleDayCellClass = 'dayofweek';
   static const _scheduleParamsSelectors = const {
@@ -26,6 +25,11 @@ class SyktsuDocumentParser extends DocumentParser {
     ScheduleType.teacher: 'button[name=\'name\']',
     ScheduleType.classroom: 'button[name=\'aud\']'
   };
+  static const _scheduleTitlePatterns = const [
+    'для группы ',
+    'для аудитории ',
+    'для преподавателя '
+  ];
 
   static List<String> _toLines(String text) {
     return text
@@ -67,7 +71,9 @@ class SyktsuDocumentParser extends DocumentParser {
   @override
   String extractScheduleTitle(Document document) {
     final header = document.querySelector(_scheduleTitleSelector);
-    return _toLines(header.text)[2];
+    final titleLine = _toLines(header.text)[2];
+    return _scheduleTitlePatterns.fold(
+        titleLine, (value, pattern) => value.replaceAll(pattern, ''));
   }
 
   @override
@@ -100,6 +106,7 @@ class SyktsuDocumentParser extends DocumentParser {
   List<Week> extractWeeks(Document document) {
     return document
         .querySelectorAll(_scheduleWeekSelector)
+        .skip(1)
         .map((item) => Week(
             id: item.attributes['value'],
             title: item.text,

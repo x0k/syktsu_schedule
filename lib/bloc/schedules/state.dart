@@ -9,22 +9,25 @@ abstract class SchedulesState {
 }
 
 class SchedulesInitial extends SchedulesState {
-  const SchedulesInitial();
-}
-
-class SchedulesLoading extends SchedulesState {
-  const SchedulesLoading();
-}
-
-class SchedulesLoaded extends SchedulesState {
   final String searchPhrase;
   final ScheduleType type;
+  const SchedulesInitial({@required this.searchPhrase, @required this.type});
+}
+
+class SchedulesLoading extends SchedulesInitial {
+  const SchedulesLoading(
+      {@required ScheduleType type, @required String searchPhrase})
+      : super(type: type, searchPhrase: searchPhrase);
+}
+
+class SchedulesLoaded extends SchedulesInitial {
   final List<ScheduleParams> paramsList;
 
   const SchedulesLoaded(
-      {@required this.type,
-      @required this.searchPhrase,
-      @required this.paramsList});
+      {@required ScheduleType type,
+      @required String searchPhrase,
+      @required this.paramsList})
+      : super(type: type, searchPhrase: searchPhrase);
 }
 
 class SchedulesSelectedParams extends SchedulesLoaded {

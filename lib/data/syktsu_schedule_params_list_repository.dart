@@ -8,54 +8,78 @@ import '../core/errors/failures.dart';
 import '../core/errors/exceptions.dart';
 import '../core/repositories/schedule_params_list_repository.dart';
 import '../core/utils.dart';
+import '../utils.dart';
 
 import 'services/schedule_params_list_local_data_source.dart';
 import 'services/schedule_params_list_remote_data_source.dart';
+import 'services/network_info.dart';
 
 class SyktsuScheduleParamsListRepository
     implements ScheduleParamsListRepository {
   final ScheduleParamsListLocalDataSource local;
   final ScheduleParamsListRemoteDataSource remote;
+  final NetworkInfo network;
 
   SyktsuScheduleParamsListRepository(
-      {@required this.local, @required this.remote});
+      {@required this.local, @required this.remote, @required this.network});
+
+  @override
+  Future<Either<Failure, List<ScheduleParams>>> fetchLocalScheduleParamsList(
+      ScheduleType type, String searchPhrase) async {
+    try {
+      final paramsList =
+          await local.fetchScheduleParamsList(type, searchPhrase);
+      return Right(paramsList);
+    } on LocalException {
+      return Left(LocalFailure());
+    }
+  }
 
   Future<Schedule> _fetchSchedule(ScheduleParams params) async {
-    final localSchedule = await local.fetchSchedule(params);
-    if (localSchedule != null) {
-      return localSchedule;
+    if (await network.isConnected) {
+      final remoteSchedule = await remote.fetchSchedule(params);
+      return local.saveSchedule(remoteSchedule);
     }
-    final remoteSchedule = await remote.fetchSchedule(params);
-    return local.saveSchedule(remoteSchedule);
+    return local.fetchSchedule(params);
   }
 
   @override
-  Stream<Either<Failure, ObjectsUnion<List<ScheduleParams>, Schedule>>>
-      fetchScheduleParamsListOrSchedule(
-          ScheduleType type, String searchPhrase) async* {
+  Future<Either<Failure, ObjectsUnion<List<ScheduleParams>, Schedule>>>
+      fetchRemoteScheduleParamsListOrSchedule(
+          ScheduleType type, String searchPhrase) async {
     try {
-      final localParamsList =
-          await local.fetchScheduleParamsList(type, searchPhrase);
-      yield Right(ObjectsUnion(localParamsList));
-      final remotePramsList =
-          await remote.fetchScheduleParamsListOrSchedule(type, searchPhrase);
-      if (remotePramsList.isRight()) {
-        yield Right(remotePramsList);
-      } else {
-        await local.saveScheduleParamsList(remotePramsList.left);
-        final mergedParamsList =
-            await local.fetchScheduleParamsList(type, searchPhrase);
-        if (mergedParamsList.length == 1) {
-          final schedule = await _fetchSchedule(mergedParamsList.first);
-          yield Right(ObjectsUnion(schedule));
+      if (await network.isConnected) {
+        final remotePramsListOrSchedule =
+            await remote.fetchScheduleParamsListOrSchedule(type, searchPhrase);
+        if (remotePramsListOrSchedule.isRight()) {
+          final schedule =
+              await local.saveSchedule(remotePramsListOrSchedule.right);
+          return Right(ObjectsUnion(schedule));
         } else {
-          yield Right(ObjectsUnion(mergedParamsList));
+          final remotePramsList = remotePramsListOrSchedule.left;
+          final localParamsList =
+              await local.fetchScheduleParamsList(type, searchPhrase);
+          return Right(ObjectsUnion(localParamsList.length <
+                  remotePramsList.length
+              ? localParamsList +
+                  await local.saveScheduleParamsList(uniqItems<ScheduleParams>(
+                      localParamsList,
+                      remotePramsList,
+                      (local, remote) => local.id == remote.id))
+              : localParamsList));
         }
       }
+      final localParamsList =
+          await local.fetchScheduleParamsList(type, searchPhrase);
+      if (localParamsList.length == 1) {
+        final schedule = await _fetchSchedule(localParamsList.first);
+        return Right(ObjectsUnion(schedule));
+      }
+      return Right(ObjectsUnion(localParamsList));
     } on LocalException {
-      yield Left(LocalFailure());
+      return Left(LocalFailure());
     } on ServerException {
-      yield Left(ServerFailure());
+      return Left(ServerFailure());
     }
   }
 

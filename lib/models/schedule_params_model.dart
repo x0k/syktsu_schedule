@@ -13,7 +13,7 @@ class ScheduleParamsModel extends ScheduleParams {
 
   factory ScheduleParamsModel.fromJSON(Map<String, dynamic> data) {
     return ScheduleParamsModel(
-        id: data[ParamsTable.id],
+        id: data[ParamsTable.id].toString(),
         type: scheduleNameTypes[data[ParamsTable.type]],
         title: data[ParamsTable.title]);
   }

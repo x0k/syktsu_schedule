@@ -6,7 +6,7 @@ import '../bloc/schedules/index.dart';
 
 class SchedulesPage extends StatelessWidget {
   void onSelected(BuildContext context, int selected) {
-    final bloc = BlocProvider.of<SchedulesBloc>(context);
+    final bloc = context.bloc<SchedulesBloc>();
     final state = bloc.state;
     if (state is SchedulesLoaded) {
       bloc.add(LoadSchedule(
@@ -18,7 +18,7 @@ class SchedulesPage extends StatelessWidget {
   }
 
   Widget buildInitial() {
-    return Center(child: GroupInputField(''));
+    return Container();
   }
 
   Widget buildLoading() {
@@ -29,83 +29,165 @@ class SchedulesPage extends StatelessWidget {
 
   Widget buildLoaded(SchedulesLoaded state) {
     final list = state.paramsList;
-    return Column(children: <Widget>[
-      GroupInputField(state.searchPhrase),
-      Expanded(
-        child: list.length > 0
-            ? ListView.builder(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: list.length,
-                itemBuilder: (context, i) => ListTile(
-                    onTap: () => onSelected(context, i),
-                    title: Text(list[i].title)))
-            : Text('Расписания не найдены'),
-      )
-    ]);
+    return list.length > 0
+        ? ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: list.length,
+            itemBuilder: (context, i) => ListTile(
+                onTap: () => onSelected(context, i),
+                title: Text(list[i].title)))
+        : Text('Расписания не найдены');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Group search'),
+          title: Text('Поиск расписания'),
         ),
-        body: BlocConsumer<SchedulesBloc, SchedulesState>(
-          listener: (context, state) {
-            if (state is SchedulesSelectedParams) {
-              Navigator.pushNamed(
-                context,
-                '/schedule',
-                arguments: state.params,
-              );
-            } else if (state is SchedulesSelectedSchedule) {
-              Navigator.pushNamed(
-                context,
-                '/schedule',
-                arguments: state.schedule,
-              );
-            } else if (state is SchedulesError) {
-              Scaffold.of(context).showSnackBar(SnackBar(
-                content: Text(state.message),
-              ));
-            }
-          },
-          builder: (context, state) {
-            if (state is SchedulesLoading) {
-              return buildLoading();
-            }
-            if (state is SchedulesLoaded) {
-              return buildLoaded(state);
-            }
-            return buildInitial();
-          },
-        ));
+        body: Column(children: <Widget>[
+          SearchPhraseInput(),
+          ScheduleTypeInput(),
+          Expanded(
+              child: BlocConsumer<SchedulesBloc, SchedulesState>(
+            listener: (context, state) {
+              if (state is SchedulesSelectedParams) {
+                Navigator.pushNamed(
+                  context,
+                  '/schedule',
+                  arguments: state.params,
+                );
+              } else if (state is SchedulesSelectedSchedule) {
+                Navigator.pushNamed(
+                  context,
+                  '/schedule',
+                  arguments: state.schedule,
+                );
+              } else if (state is SchedulesError) {
+                Scaffold.of(context).showSnackBar(SnackBar(
+                  content: Text(state.message),
+                ));
+              }
+            },
+            builder: (context, state) {
+              if (state is SchedulesLoading) {
+                return buildLoading();
+              }
+              if (state is SchedulesLoaded) {
+                return buildLoaded(state);
+              }
+              return buildInitial();
+            },
+          )),
+        ]));
   }
 }
 
-class GroupInputField extends StatelessWidget {
-  final String _initialSearchValue;
+class SearchPhraseInput extends StatefulWidget {
+  @override
+  _SearchPhraseInputState createState() => _SearchPhraseInputState();
+}
 
-  GroupInputField(this._initialSearchValue);
-
-  initialValue(String value) {
-    return TextEditingController(text: value);
-  }
+class _SearchPhraseInputState extends State<SearchPhraseInput> {
+  final _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: TextField(
-          controller: initialValue(_initialSearchValue),
+          controller: _controller,
           decoration: InputDecoration(
-              border: OutlineInputBorder(), hintText: 'Input group number'),
-          onSubmitted: (value) => onSubmitted(context, value)),
+              border: OutlineInputBorder(), hintText: 'Введите текст поиска'),
+          onSubmitted: (value) => onSubmitted(context, value),
+          onChanged: (value) => onChanged(context, value)),
     );
   }
 
+  void onChanged(BuildContext context, String value) {
+    if (value != null) {
+      final bloc = context.bloc<SchedulesBloc>();
+      final state = bloc.state;
+      if (state is SchedulesInitial) {
+        bloc.add(
+            GetLocalScheduleParamsList(type: state.type, searchPhrase: value));
+      }
+    }
+  }
+
   void onSubmitted(BuildContext context, String value) {
-    final bloc = BlocProvider.of<SchedulesBloc>(context);
-    bloc.add(GetSchedules(type: ScheduleType.group, searchPhrase: value));
+    final bloc = context.bloc<SchedulesBloc>();
+    final state = bloc.state;
+    if (state is SchedulesInitial) {
+      bloc.add(
+          GetRemoteScheduleParamsList(type: state.type, searchPhrase: value));
+    }
+  }
+}
+
+class ScheduleTypeInput extends StatefulWidget {
+  @override
+  _ScheduleTypeInputState createState() => _ScheduleTypeInputState();
+}
+
+class _ScheduleTypeInputState extends State<ScheduleTypeInput> {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+        child: Container(
+            decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.black38,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(4)),
+            child: BlocBuilder<SchedulesBloc, SchedulesState>(
+                builder: (context, state) => state is SchedulesInitial
+                    ? Row(
+                        mainAxisSize: MainAxisSize.max,
+                        children: ScheduleType.values
+                            .map((type) => ScheduleTypeInputButton(
+                                  text: scheduleTypeTitles[type],
+                                  selected: type == state.type,
+                                  tapHandler: () {
+                                    final bloc = context.bloc<SchedulesBloc>();
+                                    bloc.add(GetRemoteScheduleParamsList(
+                                        type: type,
+                                        searchPhrase: state.searchPhrase));
+                                  },
+                                ))
+                            .toList(),
+                      )
+                    : Container(
+                        alignment: Alignment.center,
+                        child: Text('Загрузка')))));
+  }
+}
+
+class ScheduleTypeInputButton extends StatelessWidget {
+  final String text;
+  final bool selected;
+  final void Function() tapHandler;
+
+  ScheduleTypeInputButton({this.text, this.tapHandler, this.selected = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textStyle = theme.textTheme.caption;
+    return Expanded(
+        child: GestureDetector(
+            onTap: tapHandler,
+            child: Container(
+              alignment: Alignment.center,
+              height: 32,
+              decoration: BoxDecoration(
+                  color: selected ? Colors.black38 : Colors.transparent),
+              child: Text(text,
+                  style: selected
+                      ? textStyle.copyWith(color: Colors.white)
+                      : textStyle),
+            )));
   }
 }
