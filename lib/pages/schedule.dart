@@ -125,7 +125,8 @@ class _SchedulePageState extends State<SchedulePage> {
       });
       final Object arg = ModalRoute.of(context).settings.arguments;
       if (arg is Schedule) {
-        bloc.add(LoadInitialWeek(schedule: arg, version: 0));
+        bloc.add(
+            LoadInitialWeek(schedule: arg, version: arg.versions.length - 1));
       } else if (arg is ScheduleParams) {
         bloc.add(LoadSchedule(params: arg));
       }
@@ -153,17 +154,18 @@ class _SchedulePageState extends State<SchedulePage> {
         },
         builder: (context, state) => Scaffold(
               appBar: AppBar(
-                  centerTitle: true,
-                  title: Column(children: [
-                    if (state is ScheduleLoaded) ...[
-                      Text('Расписание ${state.schedule.params.title}',
-                          style: textTheme.subtitle1
-                              .copyWith(color: Colors.white)),
-                      GestureDetector(
-                        child: Text(
-                            'Обновлено ${state.schedule.versions[state.version].dateTimeName}',
-                            style: textTheme.caption
-                                .copyWith(color: Colors.white60)),
+                centerTitle: true,
+                title: state is ScheduleLoaded
+                    ? GestureDetector(
+                        child: Column(children: [
+                          Text('Расписание ${state.schedule.params.title}',
+                              style: textTheme.subtitle1
+                                  .copyWith(color: Colors.white)),
+                          Text(
+                              'Обновлено ${state.schedule.versions[state.version].dateTimeName}',
+                              style: textTheme.caption
+                                  .copyWith(color: Colors.white60)),
+                        ]),
                         onTap: () {
                           final versions = state.schedule.versions;
                           final bloc = context.bloc<ScheduleBloc>();
@@ -187,11 +189,30 @@ class _SchedulePageState extends State<SchedulePage> {
                               );
                             },
                           );
-                        },
-                      )
-                    ] else
-                      Text('Загрузка...'),
-                  ])),
+                        })
+                    : Text('Загрузка...'),
+                actions: <Widget>[
+                  if (state is ScheduleLoaded)
+                    IconButton(
+                        icon: const Icon(Icons.today),
+                        onPressed: () async {
+                          final schedule = state.schedule;
+                          final dateTime = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: schedule.startDateTime,
+                              lastDate: schedule.endDateTime,
+                              initialDatePickerMode: DatePickerMode.day);
+                          if (dateTime != null) {
+                            final bloc = context.bloc<ScheduleBloc>();
+                            bloc.add(LoadInitialWeek(
+                                schedule: state.schedule,
+                                version: state.version,
+                                dateTime: dateTime));
+                          }
+                        })
+                ],
+              ),
               body: buildBody(state),
             ));
   }

@@ -21,12 +21,6 @@ class SyktsuScheduleParamsListLocalDataSource extends SyktsuLocalDataSource
   }
 
   @override
-  Future<List<ScheduleParams>> saveScheduleParamsList(
-      List<ScheduleParams> paramsList) {
-    return queryService.saveScheduleParamsList(paramsList);
-  }
-
-  @override
   Future<Schedule> fetchSchedule(ScheduleParams params) async {
     final versions = await queryService.getScheduleVersions(params.id);
     final weeks = await queryService.getScheduleWeeks(params.id);
@@ -39,7 +33,7 @@ class SyktsuScheduleParamsListLocalDataSource extends SyktsuLocalDataSource
         await queryService.hasScheduleParams(schedule.params.id);
     final params = hasScheduleParams
         ? schedule.params
-        : (await queryService.saveScheduleParamsList([schedule.params])).first;
+        : (await queryService.saveScheduleParams(schedule.params));
     final localVersions = await queryService.getScheduleVersions(params.id);
     final uniqVersions = uniqItems<Version>(localVersions, schedule.versions,
         (local, remote) => local.dateTime.compareTo(remote.dateTime) == 0);

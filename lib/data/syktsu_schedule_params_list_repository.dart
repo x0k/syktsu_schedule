@@ -57,16 +57,7 @@ class SyktsuScheduleParamsListRepository
           return Right(ObjectsUnion(schedule));
         } else {
           final remotePramsList = remotePramsListOrSchedule.left;
-          final localParamsList =
-              await local.fetchScheduleParamsList(type, searchPhrase);
-          return Right(ObjectsUnion(localParamsList.length <
-                  remotePramsList.length
-              ? localParamsList +
-                  await local.saveScheduleParamsList(uniqItems<ScheduleParams>(
-                      localParamsList,
-                      remotePramsList,
-                      (local, remote) => local.id == remote.id))
-              : localParamsList));
+          return Right(ObjectsUnion(remotePramsList));
         }
       }
       final localParamsList =

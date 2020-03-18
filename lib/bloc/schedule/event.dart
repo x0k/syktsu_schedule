@@ -16,7 +16,9 @@ class LoadSchedule extends ScheduleEvent {
 class LoadInitialWeek extends ScheduleEvent {
   final Schedule schedule;
   final int version;
-  const LoadInitialWeek({@required this.schedule, @required this.version});
+  final DateTime dateTime;
+  const LoadInitialWeek(
+      {@required this.schedule, @required this.version, this.dateTime});
 }
 
 class LoadWeek extends ScheduleEvent {

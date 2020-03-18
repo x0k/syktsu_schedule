@@ -123,16 +123,10 @@ class SyktsuQueryService implements QueryService {
   }
 
   @override
-  Future<List<ScheduleParams>> saveScheduleParamsList(
-      List<ScheduleParams> paramsList) async {
+  Future<ScheduleParams> saveScheduleParams(ScheduleParams params) async {
     final db = await provider.database;
-    final batch = db.batch();
-    paramsList.forEach((params) {
-      batch.insert(Table.params, ScheduleParamsModel.toJSON(params),
-          conflictAlgorithm: ConflictAlgorithm.replace);
-    });
-    await batch.commit(noResult: true);
-    return paramsList;
+    await db.insert(Table.params, ScheduleParamsModel.toJSON(params), conflictAlgorithm: ConflictAlgorithm.replace);
+    return params;
   }
 
   @override

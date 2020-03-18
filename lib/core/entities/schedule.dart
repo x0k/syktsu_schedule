@@ -11,4 +11,7 @@ class Schedule {
 
   const Schedule(
       {@required this.params, @required this.versions, @required this.weeks});
+
+  DateTime get startDateTime => weeks.first.startDateTime;
+  DateTime get endDateTime => weeks.last.startDateTime.add(Duration(days: 7));
 }
