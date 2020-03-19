@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
 import '../core/constants.dart';
@@ -8,7 +9,6 @@ import '../core/errors/failures.dart';
 import '../core/errors/exceptions.dart';
 import '../core/repositories/schedule_params_list_repository.dart';
 import '../core/utils.dart';
-import '../utils.dart';
 
 import 'services/schedule_params_list_local_data_source.dart';
 import 'services/schedule_params_list_remote_data_source.dart';
@@ -38,7 +38,10 @@ class SyktsuScheduleParamsListRepository
   Future<Schedule> _fetchSchedule(ScheduleParams params) async {
     if (await network.isConnected) {
       final remoteSchedule = await remote.fetchSchedule(params);
-      return local.saveSchedule(remoteSchedule);
+      final localSchedule = await local.fetchSchedule(params);
+      return remoteSchedule != localSchedule
+          ? local.saveSchedule(remoteSchedule)
+          : localSchedule;
     }
     return local.fetchSchedule(params);
   }
@@ -78,7 +81,8 @@ class SyktsuScheduleParamsListRepository
   Future<Either<Failure, Schedule>> fetchSchedule(ScheduleParams params) async {
     try {
       final schedule = await _fetchSchedule(params);
-      return Right(schedule);
+      final data = Right<Failure, Schedule>(schedule);
+      return data;
     } on LocalException {
       return Left(LocalFailure());
     } on ServerException {

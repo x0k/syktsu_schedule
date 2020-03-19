@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../core/entities/date_time.dart';
 import '../core/entities/schedule_params.dart';
 import '../core/entities/schedule.dart';
 import '../core/entities/list_items.dart';
@@ -199,7 +200,7 @@ class _SchedulePageState extends State<SchedulePage> {
                           final schedule = state.schedule;
                           final dateTime = await showDatePicker(
                               context: context,
-                              initialDate: DateTime.now(),
+                              initialDate: EquatableDateTime.now(),
                               firstDate: schedule.startDateTime,
                               lastDate: schedule.endDateTime,
                               initialDatePickerMode: DatePickerMode.day);

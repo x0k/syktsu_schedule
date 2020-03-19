@@ -16,15 +16,15 @@ abstract class SyktsuRemoteDataSource {
   };
 
   static Future<Document> makeRequest(
-      ScheduleType type, Map<String, String> body) {
+      ScheduleType type, Map<String, String> body) async {
     final routeName = scheduleTypeNames[type];
     final url = '$_rootUrl/$routeName/';
-    return http.post(url, body: body).then((response) {
-      if (response.statusCode == 200) {
-        return parse(response.body);
-      }
-      throw ServerException();
-    });
+    try {
+      final response = await http.post(url, body: body);
+      return parse(response.body);
+    } catch (_) {
+      return Future.error(ServerException());
+    }
   }
 
   static Map<String, String> makeScheduleBody(ScheduleParams params) {

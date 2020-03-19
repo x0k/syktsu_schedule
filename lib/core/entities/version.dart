@@ -1,12 +1,17 @@
 import 'package:meta/meta.dart';
+import 'package:equatable/equatable.dart';
 
 import '../constants.dart';
 
-class Version {
-  final int id;
-  final DateTime dateTime;
+import 'date_time.dart';
 
-  const Version({this.id, @required this.dateTime});
+class Version extends Equatable {
+  final EquatableDateTime id;
 
-  String get dateTimeName => dateTimeFormat.format(dateTime);
+  const Version({@required this.id});
+
+  String get dateTimeName => dateTimeFormat.format(id);
+
+  @override
+  List<Object> get props => [id];
 }

@@ -107,60 +107,58 @@ class SyktsuQueryService implements QueryService {
       RecordTable.paramsVersionId: paramsVersionId,
       RecordTable.paramsWeekId: paramsWeekId
     };
-    final batch = db.batch();
+    final eventsBatch = db.batch();
     events.forEach((event) {
-      batch.insert(Table.event, EventModel.toJSON(event),
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      eventsBatch.insert(Table.event, EventModel.toJSON(event));
     });
-    final eventsId = await batch.commit();
+    final eventsId = await eventsBatch.commit();
+    final recordsBatch = db.batch();
     eventsId.forEach((eventId) {
       recordData[RecordTable.eventId] = eventId;
-      batch.insert(Table.record, recordData,
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      recordsBatch.insert(Table.record, recordData);
     });
-    await batch.commit(noResult: true);
+    await recordsBatch.commit(noResult: true);
     return getScheduleEvents(paramsId, versionId, weekId);
   }
 
   @override
   Future<ScheduleParams> saveScheduleParams(ScheduleParams params) async {
     final db = await provider.database;
-    await db.insert(Table.params, ScheduleParamsModel.toJSON(params), conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(Table.params, ScheduleParamsModel.toJSON(params));
     return params;
   }
 
   @override
   Future<Version> saveScheduleVersion(String paramsId, Version version) async {
     final db = await provider.database;
-    final versionId = await db.insert(
-        Table.version, VersionModel.toJSON(version),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(Table.version, VersionModel.toJSON(version), conflictAlgorithm: ConflictAlgorithm.ignore);
     final paramsVersionData = {
       ParamsVersionTable.paramsId: paramsId,
-      ParamsVersionTable.versionId: versionId
+      ParamsVersionTable.versionId: version.id.millisecondsSinceEpoch
     };
-    await db.insert(Table.paramsVersion, paramsVersionData,
-        conflictAlgorithm: ConflictAlgorithm.replace);
-    return VersionModel(id: versionId, dateTime: version.dateTime);
+    await db.insert(Table.paramsVersion, paramsVersionData);
+    return version;
   }
 
   @override
   Future<List<Week>> saveScheduleWeeks(
       String paramsId, List<Week> weeks) async {
     final db = await provider.database;
-    final batch = db.batch();
+    final weeksBatch = db.batch();
     weeks.forEach((week) {
-      batch.insert(Table.week, WeekModel.toJSON(week),
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      weeksBatch.insert(
+        Table.week,
+        WeekModel.toJSON(week),
+      );
     });
-    await batch.commit(noResult: true);
+    await weeksBatch.commit(noResult: true);
+    final paramsWeekBatch = db.batch();
     final paramsWeekData = {ParamsWeekTable.paramsId: paramsId};
     weeks.forEach((week) {
       paramsWeekData[ParamsWeekTable.weekId] = week.id;
-      batch.insert(Table.paramsWeek, paramsWeekData,
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      paramsWeekBatch.insert(Table.paramsWeek, paramsWeekData);
     });
-    await batch.commit(noResult: true);
+    await paramsWeekBatch.commit(noResult: true);
     return weeks;
   }
 }

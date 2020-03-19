@@ -1,8 +1,9 @@
+import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
 
-class Event {
+class Event extends Equatable {
   final int id;
   final int day;
   final int number;
@@ -21,4 +22,7 @@ class Event {
       @required this.subGroup});
 
   String get numberName => numberNames[number];
+
+  @override
+  List<Object> get props => [id];
 }

@@ -1,3 +1,4 @@
+import '../core/entities/date_time.dart';
 import '../core/entities/day.dart';
 import '../core/entities/week.dart';
 import '../core/entities/event.dart';
@@ -11,7 +12,7 @@ class EventsKeeper {
 }
 
 class ItemsMakerImpl extends ItemsMaker {
-  static Iterable<ListItem> _makeEvents(DateTime start, List<Event> events) {
+  static Iterable<ListItem> _makeEvents(EquatableDateTime start, List<Event> events) {
     return events.fold(
         EventsKeeper(events[0].day, [DayListItem(Day(events[0].day, start))]),
         (EventsKeeper keeper, event) {

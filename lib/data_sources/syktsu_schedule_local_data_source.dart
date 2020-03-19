@@ -16,7 +16,7 @@ class SyktsuScheduleLocalDataSource extends SyktsuLocalDataSource
   Future<List<Event>> fetchScheduleEvents(
       Schedule schedule, int versionIndex, int weekIndex) {
     final paramsId = schedule.params.id;
-    final versionId = schedule.versions[versionIndex].id;
+    final versionId = schedule.versions[versionIndex].id.millisecondsSinceEpoch;
     final weekId = schedule.weeks[weekIndex].id;
     return queryService.getScheduleEvents(paramsId, versionId, weekId);
   }
@@ -30,7 +30,7 @@ class SyktsuScheduleLocalDataSource extends SyktsuLocalDataSource
   Future<List<Event>> saveScheduleEvents(
       Schedule schedule, int versionIndex, int weekIndex, List<Event> events) async {
     final paramsId = schedule.params.id;
-    final versionId = schedule.versions[versionIndex].id;
+    final versionId = schedule.versions[versionIndex].id.millisecondsSinceEpoch;
     final weekId = schedule.weeks[weekIndex].id;
     return queryService.saveScheduleEvents(paramsId, versionId, weekId, events);
   }

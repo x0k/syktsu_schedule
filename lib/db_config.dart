@@ -19,7 +19,6 @@ class ParamsTable {
 
 class VersionTable {
   static const id = 'version_id';
-  static const dateTime = 'date_time';
 }
 
 class WeekTable {
@@ -66,8 +65,7 @@ const sqlCommands = [
   )''',
   '''
   CREATE TABLE ${Table.version} (
-    ${VersionTable.id} INTEGER PRIMARY KEY AUTOINCREMENT,
-    ${VersionTable.dateTime} INTEGER UNIQUE
+    ${VersionTable.id} INTEGER PRIMARY KEY
   )''',
   '''
   CREATE TABLE ${Table.week} (

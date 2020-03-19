@@ -22,9 +22,6 @@ class SyktsuScheduleRepository extends ScheduleRepository {
   SyktsuScheduleRepository(
       {@required this.local, @required this.remote, @required this.network});
 
-  bool _versionComparator(Version a, Version b) =>
-      a.dateTime.compareTo(b.dateTime) == 0;
-
   @override
   Future<Either<Failure, List<Version>>> fetchScheduleVersions(
       ScheduleParams params) async {
@@ -33,8 +30,7 @@ class SyktsuScheduleRepository extends ScheduleRepository {
           await local.fetchScheduleVersions(params);
       if (await network.isConnected) {
         final remoteVersion = await remote.fetchScheduleVersion(params);
-        final uniqVersions = uniqItems<Version>(
-            localVersions, [remoteVersion], _versionComparator);
+        final uniqVersions = uniqItems<Version>(localVersions, [remoteVersion]);
         if (uniqVersions.length > 0) {
           final savedVersion =
               await local.saveScheduleVersion(params, remoteVersion);
@@ -56,7 +52,7 @@ class SyktsuScheduleRepository extends ScheduleRepository {
       if (await network.isConnected) {
         final remoteVersion =
             await remote.fetchScheduleVersion(schedule.params);
-        if (_versionComparator(schedule.versions[versionIndex], remoteVersion)) {
+        if (schedule.versions[versionIndex] == remoteVersion) {
           final remoteEvents =
               await remote.fetchScheduleEvents(schedule, weekIndex);
           if (remoteEvents.length > 0) {

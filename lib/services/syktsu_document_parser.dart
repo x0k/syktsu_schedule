@@ -6,6 +6,7 @@ import '../core/entities/week.dart';
 import '../core/entities/version.dart';
 import '../core/entities/event.dart';
 import '../core/entities/schedule_params.dart';
+import '../core/entities/date_time.dart';
 import '../data_sources/services/document_parser.dart';
 
 class RowsKeeper {
@@ -55,12 +56,14 @@ class SyktsuDocumentParser extends DocumentParser {
     });
   }
 
-  static DateTime _parseDate(String text, RegExp pattern, DateFormat parser) {
+  static EquatableDateTime _parseDate(
+      String text, RegExp pattern, DateFormat dateTimeParser) {
     final match = pattern.firstMatch(text);
     if (match != null) {
-      return parser.parse(match.group(1));
+      return EquatableDateTime.formDateTime(
+          dateTimeParser.parse(match.group(1)));
     }
-    return DateTime.now();
+    return EquatableDateTime.now();
   }
 
   @override
@@ -97,9 +100,9 @@ class SyktsuDocumentParser extends DocumentParser {
   Version extractVersion(Document document) {
     final element = document.querySelector(_scheduleUpdateTextSelector);
     return Version(
-        dateTime: element != null
+        id: element != null
             ? _parseDate(element.text, dateTimeExtractor, dateTimeFormat)
-            : DateTime.now());
+            : EquatableDateTime.now());
   }
 
   @override

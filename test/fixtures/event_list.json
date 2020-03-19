@@ -1,82 +1,92 @@
 [
   {
+    "event_id": null,
     "day": 2,
     "number": 6,
+    "place": "519/1",
+    "sub_group": null,
     "subject": "Многомерный анализ данных и проектирование OLAP-систем (лек.)",
-    "teacher": "Котелина Н.О.",
-    "place": "519/1",
-    "subGroup": null
+    "teacher": "Котелина Н.О."
   },
   {
+    "event_id": null,
     "day": 2,
     "number": 7,
+    "place": "519/1",
+    "sub_group": null,
     "subject": "Многомерный анализ данных и проектирование OLAP-систем (пр.)",
-    "teacher": "Котелина Н.О.",
-    "place": "519/1",
-    "subGroup": null
+    "teacher": "Котелина Н.О."
   },
   {
+    "event_id": null,
     "day": 3,
     "number": 6,
-    "subject": "Иностранный язык в профессиональной деятельности (пр.)",
-    "teacher": "Латыпов Р.А.",
     "place": "427/1",
-    "subGroup": "подгруппа 1"
+    "sub_group": "подгруппа 1",
+    "subject": "Иностранный язык в профессиональной деятельности (пр.)",
+    "teacher": "Латыпов Р.А."
   },
   {
+    "event_id": null,
     "day": 3,
     "number": 6,
-    "subject": "Иностранный язык в профессиональной деятельности (пр.)",
-    "teacher": "Вуттке Н.А.",
     "place": "225/1",
-    "subGroup": "подгруппа 2"
+    "sub_group": "подгруппа 2",
+    "subject": "Иностранный язык в профессиональной деятельности (пр.)",
+    "teacher": "Вуттке Н.А."
   },
   {
+    "event_id": null,
     "day": 4,
     "number": 6,
+    "place": "431/1",
+    "sub_group": null,
     "subject": "Межкультурные коммуникации в современном мире (лек.)",
-    "teacher": "Вокуев Н.Е.",
-    "place": "431/1",
-    "subGroup": null
+    "teacher": "Вокуев Н.Е."
   },
   {
+    "event_id": null,
     "day": 4,
     "number": 7,
-    "subject": "Межкультурные коммуникации в современном мире (пр.)",
-    "teacher": "Вокуев Н.Е.",
     "place": "431/1",
-    "subGroup": null
+    "sub_group": null,
+    "subject": "Межкультурные коммуникации в современном мире (пр.)",
+    "teacher": "Вокуев Н.Е."
   },
   {
+    "event_id": null,
     "day": 5,
     "number": 6,
-    "subject": "Высокоуровневое программирование (лек.)",
-    "teacher": "Миронов В.В.",
     "place": "519/1",
-    "subGroup": null
+    "sub_group": null,
+    "subject": "Высокоуровневое программирование (лек.)",
+    "teacher": "Миронов В.В."
   },
   {
+    "event_id": null,
     "day": 5,
     "number": 7,
-    "subject": "Высокоуровневое программирование (лаб.)",
-    "teacher": "Миронов В.В.",
     "place": "519/1",
-    "subGroup": null
+    "sub_group": null,
+    "subject": "Высокоуровневое программирование (лаб.)",
+    "teacher": "Миронов В.В."
   },
   {
+    "event_id": null,
     "day": 6,
     "number": 4,
-    "subject": "Методология науки (лек.)",
-    "teacher": "Тельнова О.П.",
     "place": "251/1",
-    "subGroup": null
+    "sub_group": null,
+    "subject": "Методология науки (лек.)",
+    "teacher": "Тельнова О.П."
   },
   {
+    "event_id": null,
     "day": 6,
     "number": 5,
-    "subject": "Методология науки (пр.)",
-    "teacher": "Тельнова О.П.",
     "place": "251/1",
-    "subGroup": null
+    "sub_group": null,
+    "subject": "Методология науки (пр.)",
+    "teacher": "Тельнова О.П."
   }
 ]

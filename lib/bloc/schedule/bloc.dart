@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 
+import '../../core/entities/date_time.dart';
 import '../../core/entities/schedule.dart';
 import '../../core/entities/list_items.dart';
 import '../../core/repositories/schedule_repository.dart';
@@ -44,8 +45,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   Stream<ScheduleState> _loadInitialWeek(Schedule schedule, int version,
-      [DateTime dateTime]) async* {
-    final now = dateTime ?? DateTime.now();
+      [EquatableDateTime dateTime]) async* {
+    final now = dateTime ?? EquatableDateTime.now();
     final week = schedule.weeks
         .lastIndexWhere((week) => week.startDateTime.isBefore(now));
     yield* _loadWeek([], schedule, week > -1 ? week : 0, version);

@@ -35,11 +35,9 @@ class SyktsuScheduleParamsListLocalDataSource extends SyktsuLocalDataSource
         ? schedule.params
         : (await queryService.saveScheduleParams(schedule.params));
     final localVersions = await queryService.getScheduleVersions(params.id);
-    final uniqVersions = uniqItems<Version>(localVersions, schedule.versions,
-        (local, remote) => local.dateTime.compareTo(remote.dateTime) == 0);
+    final uniqVersions = uniqItems<Version>(localVersions, schedule.versions);
     final localWeeks = await queryService.getScheduleWeeks(params.id);
-    final uniqWeeks = uniqItems<Week>(
-        localWeeks, schedule.weeks, (local, remote) => local.id == remote.id);
+    final uniqWeeks = uniqItems<Week>(localWeeks, schedule.weeks);
     return Schedule(
         params: params,
         versions: uniqVersions.length > 0

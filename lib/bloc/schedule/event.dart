@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 
+import '../../core/entities/date_time.dart';
 import '../../core/entities/schedule.dart';
 import '../../core/entities/schedule_params.dart';
 import '../../core/entities/list_items.dart';
@@ -16,7 +17,7 @@ class LoadSchedule extends ScheduleEvent {
 class LoadInitialWeek extends ScheduleEvent {
   final Schedule schedule;
   final int version;
-  final DateTime dateTime;
+  final EquatableDateTime dateTime;
   const LoadInitialWeek(
       {@required this.schedule, @required this.version, this.dateTime});
 }

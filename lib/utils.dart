@@ -1,11 +1,7 @@
-List<T> uniqItems<T>(List<T> store, List<T> items,
-    bool Function(T storeItem, T newItem) comparator) {
+import 'package:equatable/equatable.dart';
+
+List<T> uniqItems<T extends Equatable>(List<T> store, List<T> items) {
   return items
-      .where((newItem) =>
-          store.firstWhere(
-            (storeItem) => comparator(storeItem, newItem),
-            orElse: () => null,
-          ) ==
-          null)
+      .where((newItem) => !store.contains(newItem))
       .toList();
 }

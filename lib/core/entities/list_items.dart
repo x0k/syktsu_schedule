@@ -1,6 +1,5 @@
 
 import 'event.dart';
-import 'week.dart';
 import 'day.dart';
 
 abstract class ListItem<T> {
