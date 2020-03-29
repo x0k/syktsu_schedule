@@ -13,7 +13,7 @@ class Event extends Equatable {
   final String subGroup;
 
   Event(
-      {this.id,
+      {@required this.id,
       @required this.day,
       @required this.number,
       @required this.teacher,
@@ -24,5 +24,5 @@ class Event extends Equatable {
   String get numberName => numberNames[number];
 
   @override
-  List<Object> get props => [id];
+  List<Object> get props => [day, number, subject, teacher, place, subGroup];
 }

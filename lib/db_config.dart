@@ -81,7 +81,8 @@ const sqlCommands = [
     ${EventTable.subject} STRING,
     ${EventTable.teacher} STRING,
     ${EventTable.place} STRING,
-    ${EventTable.subGroup} STRING
+    ${EventTable.subGroup} STRING,
+    UNIQUE(${EventTable.day}, ${EventTable.number}, ${EventTable.subject}, ${EventTable.teacher}, ${EventTable.place}, ${EventTable.subGroup})
   )''',
   '''
   CREATE TABLE ${Table.paramsVersion} (

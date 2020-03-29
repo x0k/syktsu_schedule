@@ -107,11 +107,42 @@ class SyktsuQueryService implements QueryService {
       RecordTable.paramsVersionId: paramsVersionId,
       RecordTable.paramsWeekId: paramsWeekId
     };
-    final eventsBatch = db.batch();
+    final eventFindBatch = db.batch();
     events.forEach((event) {
-      eventsBatch.insert(Table.event, EventModel.toJSON(event));
+      if (event.subGroup == null) {
+        eventFindBatch.query(Table.event,
+            columns: [EventTable.id],
+            where:
+                '${EventTable.day} = ? AND ${EventTable.number} = ? AND ${EventTable.subject} = ? AND ${EventTable.teacher} = ? AND ${EventTable.place} = ? AND ${EventTable.subGroup} IS NULL',
+            whereArgs: [
+              event.day,
+              event.number,
+              event.subject,
+              event.teacher,
+              event.place
+            ]);
+      } else {
+        eventFindBatch.query(Table.event,
+            columns: [EventTable.id],
+            where:
+                '${EventTable.day} = ? AND ${EventTable.number} = ? AND ${EventTable.subject} = ? AND ${EventTable.teacher} = ? AND ${EventTable.place} = ? AND ${EventTable.subGroup} = ?',
+            whereArgs: [
+              event.day,
+              event.number,
+              event.subject,
+              event.teacher,
+              event.place,
+              event.subGroup
+            ]);
+      }
     });
-    final eventsId = await eventsBatch.commit();
+    final localEvents =
+        await eventFindBatch.commit();
+    final eventsId = await Future.wait(
+        List.generate(events.length, (i) => i).map((i) =>
+            localEvents[i].length > 0
+                ? Future.value(localEvents[i][0][EventTable.id])
+                : db.insert(Table.event, EventModel.toJSON(events[i]))));
     final recordsBatch = db.batch();
     eventsId.forEach((eventId) {
       recordData[RecordTable.eventId] = eventId;
@@ -131,7 +162,8 @@ class SyktsuQueryService implements QueryService {
   @override
   Future<Version> saveScheduleVersion(String paramsId, Version version) async {
     final db = await provider.database;
-    await db.insert(Table.version, VersionModel.toJSON(version), conflictAlgorithm: ConflictAlgorithm.ignore);
+    await db.insert(Table.version, VersionModel.toJSON(version),
+        conflictAlgorithm: ConflictAlgorithm.ignore);
     final paramsVersionData = {
       ParamsVersionTable.paramsId: paramsId,
       ParamsVersionTable.versionId: version.id.millisecondsSinceEpoch

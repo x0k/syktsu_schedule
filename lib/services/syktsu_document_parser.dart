@@ -46,6 +46,7 @@ class SyktsuDocumentParser extends DocumentParser {
       final lines = _toLines(subject.text);
       final teacherAndPlaceText = lines[1].split(', ');
       return Event(
+        id: null,
         day: day,
         number: number,
         subject: lines[0],
