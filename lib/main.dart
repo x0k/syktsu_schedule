@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
+import 'package:preferences/preferences.dart';
 
 import 'bloc/schedules/block.dart';
 import 'bloc/schedule/bloc.dart';
@@ -19,10 +20,13 @@ import 'services/syktsu_query_service.dart';
 import 'services/syktsu_database_provider.dart';
 import 'pages/schedules.dart';
 import 'pages/schedule.dart';
+import 'pages/settings.dart';
 
-void main() {
+void main() async {
   initializeDateFormatting('ru', null);
   Intl.defaultLocale = 'ru';
+  WidgetsFlutterBinding.ensureInitialized();
+  await PrefService.init(prefix: 'pref_');
   runApp(MyApp());
 }
 
@@ -55,7 +59,8 @@ class MyApp extends StatelessWidget {
         '/schedule': (context) => BlocProvider(
             create: (context) =>
                 ScheduleBloc(scheduleRepository, paramsListRepository, maker),
-            child: SchedulePage())
+            child: SchedulePage()),
+        '/settings': (context) => SettingsPage()
       },
     );
   }

@@ -1,5 +1,7 @@
 import 'package:data_connection_checker/data_connection_checker.dart';
+import 'package:preferences/preferences.dart';
 
+import '../constants.dart';
 import '../data/services/network_info.dart';
 
 class SyktsuNetworkInfo implements NetworkInfo {
@@ -8,5 +10,7 @@ class SyktsuNetworkInfo implements NetworkInfo {
   SyktsuNetworkInfo(this.checker);
 
   @override
-  Future<bool> get isConnected => checker.hasConnection;
+  Future<bool> get isConnected => PrefService.getBool(OFFLINE_MODE)
+      ? Future.value(false)
+      : checker.hasConnection;
 }

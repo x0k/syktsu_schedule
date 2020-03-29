@@ -44,6 +44,13 @@ class SchedulesPage extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
           title: Text('Поиск расписания'),
+          actions: <Widget>[
+            IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/settings');
+                })
+          ],
         ),
         body: Column(children: <Widget>[
           SearchPhraseInput(),
