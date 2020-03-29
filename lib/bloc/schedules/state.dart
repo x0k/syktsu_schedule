@@ -21,6 +21,25 @@ class SchedulesLoading extends SchedulesInitial {
 }
 
 class SchedulesLoaded extends SchedulesInitial {
+  static SchedulesLoaded fromJSON(Map<String, dynamic> data) {
+    return SchedulesLoaded(
+        paramsList: data['paramsList']
+            .map((item) => ScheduleParams.fromJSON(item))
+            .toList()
+            .cast<ScheduleParams>(),
+        type: scheduleNameTypes[data['type']],
+        searchPhrase: data['searchPhrase']);
+  }
+
+  static Map<String, dynamic> toJSON(SchedulesLoaded state) {
+    return {
+      'paramsList':
+          state.paramsList.map((item) => ScheduleParams.toJSON(item)).toList(),
+      'type': scheduleTypeNames[state.type],
+      'searchPhrase': state.searchPhrase,
+    };
+  }
+
   final List<ScheduleParams> paramsList;
 
   const SchedulesLoaded(

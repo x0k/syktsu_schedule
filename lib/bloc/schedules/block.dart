@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:bloc/bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:syktsu_schedule/core/constants.dart';
 
 import '../../core/repositories/schedule_params_list_repository.dart';
@@ -7,13 +7,14 @@ import '../../core/repositories/schedule_params_list_repository.dart';
 import 'event.dart';
 import 'state.dart';
 
-class SchedulesBloc extends Bloc<SchedulesEvent, SchedulesState> {
+class SchedulesBloc extends HydratedBloc<SchedulesEvent, SchedulesState> {
   final ScheduleParamsListRepository repository;
 
   SchedulesBloc(this.repository);
 
   @override
   SchedulesState get initialState =>
+      super.initialState ??
       SchedulesInitial(searchPhrase: '', type: ScheduleType.group);
 
   @override
@@ -57,5 +58,21 @@ class SchedulesBloc extends Bloc<SchedulesEvent, SchedulesState> {
         SchedulesError("Couldn't fetch schedules.");
       }
     }
+  }
+
+  @override
+  SchedulesState fromJson(Map<String, dynamic> source) {
+    if (source != null) {
+      return SchedulesLoaded.fromJSON(source);
+    }
+    return null;
+  }
+
+  @override
+  Map<String, dynamic> toJson(SchedulesState state) {
+    if (state.runtimeType == SchedulesLoaded) {
+      return SchedulesLoaded.toJSON(state);
+    }
+    return null;
   }
 }

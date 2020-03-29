@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:bloc/bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../core/entities/schedule.dart';
 import '../../core/entities/list_items.dart';
@@ -11,7 +11,7 @@ import '../services/list_items_maker.dart';
 import 'event.dart';
 import 'state.dart';
 
-class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
+class ScheduleBloc extends HydratedBloc<ScheduleEvent, ScheduleState> {
   final ScheduleRepository scheduleRepository;
   final ScheduleParamsListRepository paramsListRepository;
   final ItemsMaker maker;
@@ -52,7 +52,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   @override
-  ScheduleState get initialState => ScheduleInitial();
+  ScheduleState get initialState => super.initialState ?? ScheduleInitial();
 
   @override
   Stream<ScheduleState> mapEventToState(ScheduleEvent event) async* {
@@ -71,5 +71,21 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
             message: "Couldn't fetch schedule ${event.params.title}");
       }
     }
+  }
+
+  @override
+  ScheduleState fromJson(Map<String, dynamic> source) {
+    if (source != null) {
+      return ScheduleLoaded.fromJson(source);
+    }
+    return null;
+  }
+
+  @override
+  Map<String, dynamic> toJson(ScheduleState state) {
+    if (state is ScheduleLoaded && state.loading == false) {
+      return ScheduleLoaded.toJSON(state);
+    }
+    return null;
   }
 }

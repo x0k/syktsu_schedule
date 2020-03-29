@@ -6,6 +6,24 @@ import 'version.dart';
 import 'week.dart';
 
 class Schedule extends Equatable {
+  static Schedule fromJSON(Map<String, dynamic> data) {
+    return Schedule(
+        params: ScheduleParams.fromJSON(data['params']),
+        weeks: data['weeks'].map((week) => Week.fromJSON(week)),
+        versions:
+            data['versions'].map((version) => Version.fromJSON(version)));
+  }
+
+  static Map<String, dynamic> toJSON(Schedule schedule) {
+    return {
+      'params': ScheduleParams.toJSON(schedule.params),
+      'weeks': schedule.weeks.map((week) => Week.toJSON(week)).toList(),
+      'versions': schedule.versions
+          .map((version) => Version.toJSON(version))
+          .toList()
+    };
+  }
+
   final ScheduleParams params;
   final List<Version> versions;
   final List<Week> weeks;

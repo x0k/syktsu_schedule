@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
@@ -26,6 +27,7 @@ void main() async {
   initializeDateFormatting('ru', null);
   Intl.defaultLocale = 'ru';
   WidgetsFlutterBinding.ensureInitialized();
+  BlocSupervisor.delegate = await HydratedBlocDelegate.build();
   await PrefService.init(prefix: 'pref_');
   runApp(MyApp());
 }

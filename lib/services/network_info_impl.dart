@@ -10,7 +10,7 @@ class SyktsuNetworkInfo implements NetworkInfo {
   SyktsuNetworkInfo(this.checker);
 
   @override
-  Future<bool> get isConnected => PrefService.getBool(OFFLINE_MODE)
+  Future<bool> get isConnected => PrefService.getBool(OFFLINE_MODE) ?? false
       ? Future.value(false)
       : checker.hasConnection;
 }

@@ -6,6 +6,18 @@ import '../constants.dart';
 import 'date_time.dart';
 
 class Version extends Equatable {
+  static Version fromJSON(Map<String, dynamic> data) {
+    return Version(
+        id: EquatableDateTime.fromMillisecondsSinceEpoch(
+            data[VersionTable.id]));
+  }
+
+  static Map<String, dynamic> toJSON(Version version) {
+    return {
+      VersionTable.id: version.id.millisecondsSinceEpoch,
+    };
+  }
+
   final EquatableDateTime id;
 
   const Version({@required this.id});

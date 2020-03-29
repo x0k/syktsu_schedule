@@ -16,6 +16,28 @@ class ScheduleLoading extends ScheduleState {
 }
 
 class ScheduleLoaded extends ScheduleState {
+  static ScheduleLoaded fromJson(Map<String, dynamic> data) {
+    return ScheduleLoaded(
+        schedule: Schedule.fromJSON(data['schedule']),
+        items: data['items']
+            .map((item) => ListItem.fromJSON(item))
+            .toList()
+            .cast<ListItem>(),
+        version: data['version'],
+        week: data['week'],
+        loading: data['loading']);
+  }
+
+  static Map<String, dynamic> toJSON(ScheduleLoaded state) {
+    return {
+      'schedule': Schedule.toJSON(state.schedule),
+      'items': state.items.map((item) => ListItem.toJSON(item)).toList(),
+      'version': state.version,
+      'week': state.week,
+      'loading': state.loading,
+    };
+  }
+
   final Schedule schedule;
   final List<ListItem> items;
   final int week;

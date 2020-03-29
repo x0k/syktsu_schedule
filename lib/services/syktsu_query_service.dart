@@ -6,11 +6,6 @@ import '../core/entities/version.dart';
 import '../core/entities/week.dart';
 import '../core/entities/schedule_params.dart';
 import '../data_sources/services/query_service.dart';
-import '../models/event_model.dart';
-import '../models/version_model.dart';
-import '../models/week_model.dart';
-import '../models/schedule_params_model.dart';
-import '../db_config.dart';
 
 import 'services/database_provider.dart';
 
@@ -46,7 +41,7 @@ class SyktsuQueryService implements QueryService {
       WHERE ${Table.paramsVersion}.${ParamsVersionTable.paramsId} = ? AND ${Table.paramsWeek}.${ParamsWeekTable.paramsId} = ? AND ${ParamsVersionTable.versionId} = ? AND ${ParamsWeekTable.weekId} = ?
       ''',
       arguments: [paramsId, paramsId, versionId, weekId],
-      makeModel: (event) => EventModel.fromJSON(event),
+      makeModel: (event) => Event.fromJSON(event),
     );
   }
 
@@ -58,7 +53,7 @@ class SyktsuQueryService implements QueryService {
       WHERE ${ParamsVersionTable.paramsId} = ?
       ''',
       arguments: [paramsId],
-      makeModel: (data) => VersionModel.fromJSON(data),
+      makeModel: (data) => Version.fromJSON(data),
     );
   }
 
@@ -70,7 +65,7 @@ class SyktsuQueryService implements QueryService {
       WHERE ${ParamsWeekTable.paramsId} = ?
       ''',
       arguments: [paramsId],
-      makeModel: (data) => WeekModel.fromJSON(data),
+      makeModel: (data) => Week.fromJSON(data),
     );
   }
 
@@ -85,7 +80,7 @@ class SyktsuQueryService implements QueryService {
       ORDER BY ${ParamsTable.title} ASC
       ''',
       arguments: [scheduleTypeNames[type]],
-      makeModel: (data) => ScheduleParamsModel.fromJSON(data),
+      makeModel: (data) => ScheduleParams.fromJSON(data),
     );
   }
 
@@ -142,7 +137,7 @@ class SyktsuQueryService implements QueryService {
         List.generate(events.length, (i) => i).map((i) =>
             localEvents[i].length > 0
                 ? Future.value(localEvents[i][0][EventTable.id])
-                : db.insert(Table.event, EventModel.toJSON(events[i]))));
+                : db.insert(Table.event, Event.toJSON(events[i]))));
     final recordsBatch = db.batch();
     eventsId.forEach((eventId) {
       recordData[RecordTable.eventId] = eventId;
@@ -155,14 +150,14 @@ class SyktsuQueryService implements QueryService {
   @override
   Future<ScheduleParams> saveScheduleParams(ScheduleParams params) async {
     final db = await provider.database;
-    await db.insert(Table.params, ScheduleParamsModel.toJSON(params));
+    await db.insert(Table.params, ScheduleParams.toJSON(params));
     return params;
   }
 
   @override
   Future<Version> saveScheduleVersion(String paramsId, Version version) async {
     final db = await provider.database;
-    await db.insert(Table.version, VersionModel.toJSON(version),
+    await db.insert(Table.version, Version.toJSON(version),
         conflictAlgorithm: ConflictAlgorithm.ignore);
     final paramsVersionData = {
       ParamsVersionTable.paramsId: paramsId,
@@ -180,7 +175,7 @@ class SyktsuQueryService implements QueryService {
     weeks.forEach((week) {
       weeksBatch.insert(
         Table.week,
-        WeekModel.toJSON(week),
+        Week.toJSON(week),
       );
     });
     await weeksBatch.commit(noResult: true);

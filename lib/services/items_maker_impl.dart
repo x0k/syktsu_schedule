@@ -12,13 +12,16 @@ class EventsKeeper {
 }
 
 class ItemsMakerImpl extends ItemsMaker {
-  static Iterable<ListItem> _makeEvents(EquatableDateTime start, List<Event> events) {
+  static Iterable<ListItem> _makeEvents(
+      EquatableDateTime start, List<Event> events) {
     return events.fold(
-        EventsKeeper(events[0].day, [DayListItem(Day(events[0].day, start))]),
-        (EventsKeeper keeper, event) {
+        EventsKeeper(events[0].day, [
+          DayListItem(Day(number: events[0].day, weekStartTime: start))
+        ]), (EventsKeeper keeper, event) {
       return EventsKeeper(event.day, [
         ...keeper.items,
-        if (keeper.day != event.day) DayListItem(Day(event.day, start)),
+        if (keeper.day != event.day)
+          DayListItem(Day(number: event.day, weekStartTime: start)),
         EventListItem(event)
       ]);
     }).items;
