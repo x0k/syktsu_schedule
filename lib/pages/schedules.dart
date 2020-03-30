@@ -96,7 +96,21 @@ class SearchPhraseInput extends StatefulWidget {
 }
 
 class _SearchPhraseInputState extends State<SearchPhraseInput> {
-  final _controller = TextEditingController();
+  TextEditingController _controller;
+
+  @override
+  void didChangeDependencies() {
+    final bloc = context.bloc<SchedulesBloc>();
+    final state = bloc.state;
+    _controller = TextEditingController(
+        text: state is SchedulesLoaded ? state.searchPhrase : '');
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
